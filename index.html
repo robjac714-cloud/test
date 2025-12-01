@@ -5,6 +5,9 @@
   <title>تجربة ليد إلى Go High Level</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
+  <!-- 🟦 ContentSquare Tracking Script -->
+  <script src="https://t.contentsquare.net/uxa/30123bb0cadcb.js"></script>
+
   <style>
     body {
       background: #202020;
@@ -71,34 +74,39 @@
 </head>
 <body>
 
-  <div class="box">
+  <div class="box" id="formSection">
     <h2>اختبار إرسال ليد</h2>
 
-    <!-- غيّر رابط الـ Webhook هنا -->
     <form id="leadForm" action="https://services.leadconnectorhq.com/hooks/5qeQ3ikz7A2FnApihfMQ/webhook-trigger/1e5df20a-3b37-40f1-96f3-8043d468a335" method="POST">
 
-      <input type="text" name="Full name" placeholder="الاسم الكامل" required>
-      <input type="tel" name="Phone" placeholder="رقم الهاتف" required>
-      <input type="email" name="Email" placeholder="البريد الإلكتروني" required>
+      <input type="text" id="fullName" name="Full name" placeholder="الاسم الكامل" required>
+      <input type="tel" id="phone" name="Phone" placeholder="رقم الهاتف" required>
+      <input type="email" id="email" name="Email" placeholder="البريد الإلكتروني" required>
 
-      <select name="unit_type" required>
+      <select name="unit_type" id="unitType" required>
         <option value="">اختر نوع الوحدة</option>
         <option value="Studio">استوديو</option>
         <option value="1BR">غرفة وصالة</option>
         <option value="2BR">غرفتين وصالة</option>
       </select>
 
-      <button type="submit">إرسال الآن</button>
+      <button type="submit" id="submitBtn">إرسال الآن</button>
     </form>
 
     <div id="msg" class="success">✔️ تم إرسال البيانات بنجاح</div>
   </div>
 
+  <!-- 🔥 Basic Tracking Script (بدون Hotjar) -->
   <script>
-    document.getElementById("leadForm").addEventListener("submit", function() {
-      setTimeout(() => {
-        document.getElementById("msg").style.display = "block";
-      }, 700);
+    document.addEventListener("DOMContentLoaded", function () {
+
+      // تتبع إظهار رسالة النجاح
+      document.getElementById("leadForm").addEventListener("submit", function() {
+        setTimeout(() => {
+          document.getElementById("msg").style.display = "block";
+        }, 700);
+      });
+
     });
   </script>
 
