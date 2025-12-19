@@ -1,114 +1,626 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>تجربة ليد إلى Go High Level</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Property Chat Bot</title>
 
-  <!-- 🟦 ContentSquare Tracking Script -->
-  <script src="https://t.contentsquare.net/uxa/30123bb0cadcb.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 
   <style>
-    body {
-      background: #202020;
-      font-family: Tahoma, Arial;
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 20px;
+    :root{
+      --bg:#f5f5f7;
+      --panel:#ffffff;
+      --stroke:#e5e7eb;
+      --muted:#6b7280;
+      --text:#111827;
+      --accent:#2563eb;
+      --accent2:#0ea5e9;
+      --bot:#eef2ff;
+      --user:#ecfeff;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; background:var(--bg); color:var(--text);
+      font-family:"Cairo",system-ui,-apple-system,Segoe UI,Tahoma;
+      display:flex; justify-content:center; padding:16px;
+    }
+    .app{
+      width:min(920px, 100%);
+      height:min(92vh, 820px);
+      display:flex; flex-direction:column;
+      border:1px solid var(--stroke);
+      border-radius:18px;
+      background:var(--panel);
+      box-shadow:0 16px 40px rgba(15,23,42,.08);
+      overflow:hidden;
+    }
+    .topbar{
+      padding:12px 14px;
+      border-bottom:1px solid var(--stroke);
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      background:linear-gradient(90deg,#fff,#f9fafb);
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      font-weight:800;
+    }
+    .pill{
+      width:34px; height:34px; border-radius:999px;
+      background:radial-gradient(circle at 30% 30%, var(--accent2), var(--accent));
+      display:grid; place-items:center; color:#fff;
+      font-weight:900;
+    }
+    .sub{
+      font-size:12px; color:var(--muted); font-weight:600;
+    }
+    .actions{
+      display:flex; align-items:center; gap:8px;
+    }
+    .btn{
+      border:1px solid var(--stroke);
+      background:#fff;
+      border-radius:999px;
+      padding:8px 12px;
+      cursor:pointer;
+      font-weight:800;
+      font-size:12px;
+      color:#1f2937;
+    }
+    .btn.primary{
+      border:0;
+      background:linear-gradient(90deg,var(--accent),var(--accent2));
+      color:#fff;
+      box-shadow:0 10px 22px rgba(37,99,235,.22);
     }
 
-    .box {
-      background: #2b2b2b;
-      padding: 30px;
-      border-radius: 10px;
-      width: 100%;
-      max-width: 420px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.4);
+    .chat{
+      flex:1;
+      padding:14px;
+      overflow:auto;
+      background:
+        radial-gradient(circle at top, rgba(209,213,219,0.55) 0, rgba(245,245,247,1) 60%);
     }
 
-    h2 {
-      text-align: center;
-      margin-bottom: 25px;
-      font-size: 22px;
-      color: #fcd202;
+    .row{ display:flex; margin:10px 0; }
+    .row.bot{ justify-content:flex-start; }
+    .row.user{ justify-content:flex-end; }
+
+    .bubble{
+      max-width:min(78%, 620px);
+      border:1px solid var(--stroke);
+      border-radius:16px;
+      padding:10px 12px;
+      box-shadow:0 8px 18px rgba(15,23,42,.05);
+      line-height:1.5;
+      font-size:14px;
+      white-space:pre-wrap;
+    }
+    .row.bot .bubble{ background:var(--bot); border-top-right-radius:6px; }
+    .row.user .bubble{ background:var(--user); border-top-left-radius:6px; }
+
+    .chips{
+      display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;
+    }
+    .chip{
+      border:1px solid var(--stroke);
+      background:#fff;
+      border-radius:999px;
+      padding:7px 10px;
+      cursor:pointer;
+      font-weight:800;
+      font-size:12px;
+      color:#111827;
+      user-select:none;
+    }
+    .chip:hover{ border-color:#bfdbfe; }
+
+    .composer{
+      padding:12px;
+      border-top:1px solid var(--stroke);
+      display:flex; gap:10px;
+      background:#fff;
+    }
+    input{
+      flex:1;
+      border:1px solid #d1d5db;
+      border-radius:12px;
+      padding:12px 12px;
+      font-size:14px;
+      outline:none;
+    }
+    input:focus{ border-color:#93c5fd; box-shadow:0 0 0 4px rgba(59,130,246,.12); }
+    .send{
+      border:0;
+      border-radius:12px;
+      padding:12px 14px;
+      cursor:pointer;
+      font-weight:900;
+      background:linear-gradient(90deg,var(--accent),var(--accent2));
+      color:#fff;
     }
 
-    input, select, button {
-      width: 100%;
-      margin-bottom: 12px;
-      padding: 12px;
-      font-size: 16px;
-      border-radius: 6px;
-      border: none;
+    .card{
+      background:#fff;
+      border:1px solid var(--stroke);
+      border-radius:14px;
+      overflow:hidden;
+      margin-top:10px;
     }
-
-    input, select {
-      background: #fff;
-      color: #000;
+    .card img{
+      width:100%;
+      aspect-ratio:16/9;
+      object-fit:cover;
+      background:#e5e7eb;
+      display:block;
     }
-
-    button {
-      background: #fcd202;
-      color: #000;
-      font-weight: bold;
-      cursor: pointer;
+    .card .cb{
+      padding:10px 12px 12px;
     }
-
-    button:hover {
-      background: #ffdf47;
+    .title{ font-weight:900; margin-bottom:6px; }
+    .meta{ display:flex; flex-wrap:wrap; gap:6px; }
+    .tag{
+      font-size:12px;
+      background:#f3f4f6;
+      border:1px solid var(--stroke);
+      padding:3px 8px;
+      border-radius:999px;
+      color:#374151;
+      font-weight:800;
     }
-
-    .success {
-      margin-top: 10px;
-      background: #28a745;
-      padding: 10px;
-      border-radius: 6px;
-      display: none;
-      text-align: center;
-      font-weight: bold;
+    .link{
+      display:block;
+      margin-top:10px;
+      text-align:center;
+      border:1px solid #d1d5db;
+      background:#f9fafb;
+      border-radius:999px;
+      padding:8px 10px;
+      text-decoration:none;
+      color:#2563eb;
+      font-weight:900;
+      font-size:13px;
     }
+    .mutedline{ font-size:12px; color:var(--muted); margin-top:6px; }
+    .hr{ height:1px; background:var(--stroke); margin:10px 0; }
   </style>
 </head>
+
 <body>
+  <div class="app">
+    <div class="topbar">
+      <div class="brand">
+        <div class="pill">CM</div>
+        <div>
+          <div>Property Chat Bot</div>
+          <div class="sub">فلترة + أفضل 5 نتائج</div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn" id="reset">إعادة بدء</button>
+        <button class="btn primary" id="demo">تجربة سريعة</button>
+      </div>
+    </div>
 
-  <div class="box" id="formSection">
-    <h2>اختبار إرسال ليد</h2>
+    <div class="chat" id="chat"></div>
 
-    <form id="leadForm" action="https://services.leadconnectorhq.com/hooks/5qeQ3ikz7A2FnApihfMQ/webhook-trigger/1e5df20a-3b37-40f1-96f3-8043d468a335" method="POST">
-
-      <input type="text" id="fullName" name="Full name" placeholder="الاسم الكامل" required>
-      <input type="tel" id="phone" name="Phone" placeholder="رقم الهاتف" required>
-      <input type="email" id="email" name="Email" placeholder="البريد الإلكتروني" required>
-
-      <select name="unit_type" id="unitType" required>
-        <option value="">اختر نوع الوحدة</option>
-        <option value="Studio">استوديو</option>
-        <option value="1BR">غرفة وصالة</option>
-        <option value="2BR">غرفتين وصالة</option>
-      </select>
-
-      <button type="submit" id="submitBtn">إرسال الآن</button>
-    </form>
-
-    <div id="msg" class="success">✔️ تم إرسال البيانات بنجاح</div>
+    <div class="composer">
+      <input id="input" placeholder="اكتب جوابك هنا… (مثال: Dubai)" autocomplete="off" />
+      <button class="send" id="send">إرسال</button>
+    </div>
   </div>
 
-  <!-- 🔥 Basic Tracking Script (بدون Hotjar) -->
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
+<script>
+/** =========================
+ *  API CONFIG (مثل كودك)
+ *  ========================= */
+const API_BASE  = "https://search-listings-production.up.railway.app/v1/properties";
+const API_KEY   = "reelly-80fd5f24-WLrF9bAxkGwYrUXFjrIyzNxRlzrB4kpH";
+const API_KEY_HEADER = "X-API-Key";
 
-      // تتبع إظهار رسالة النجاح
-      document.getElementById("leadForm").addEventListener("submit", function() {
-        setTimeout(() => {
-          document.getElementById("msg").style.display = "block";
-        }, 700);
-      });
+/** =========================
+ *  UI Helpers
+ *  ========================= */
+const chat = document.getElementById("chat");
+const input = document.getElementById("input");
+const sendBtn = document.getElementById("send");
+const resetBtn = document.getElementById("reset");
+const demoBtn = document.getElementById("demo");
 
-    });
-  </script>
+function scrollBottom(){ chat.scrollTop = chat.scrollHeight; }
 
+function addBubble(text, who="bot"){
+  const row = document.createElement("div");
+  row.className = "row " + who;
+  const b = document.createElement("div");
+  b.className = "bubble";
+  b.textContent = text;
+  row.appendChild(b);
+  chat.appendChild(row);
+  scrollBottom();
+  return b;
+}
+
+function addChips(options, onPick){
+  const row = document.createElement("div");
+  row.className = "row bot";
+  const wrap = document.createElement("div");
+  wrap.className = "bubble";
+  const chips = document.createElement("div");
+  chips.className = "chips";
+  options.forEach(opt=>{
+    const c = document.createElement("div");
+    c.className = "chip";
+    c.textContent = opt.label ?? opt;
+    c.addEventListener("click", ()=>onPick(opt.value ?? opt));
+    chips.appendChild(c);
+  });
+  wrap.appendChild(chips);
+  row.appendChild(wrap);
+  chat.appendChild(row);
+  scrollBottom();
+}
+
+function addCards(items){
+  const row = document.createElement("div");
+  row.className = "row bot";
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  bubble.textContent = "أفضل 5 نتائج حسب طلبك 👇";
+  row.appendChild(bubble);
+  chat.appendChild(row);
+
+  items.forEach((it, idx)=>{
+    const cardRow = document.createElement("div");
+    cardRow.className = "row bot";
+    const bubble2 = document.createElement("div");
+    bubble2.className = "bubble";
+
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const img = document.createElement("img");
+    img.src = getImage(it);
+    img.alt = "project";
+    card.appendChild(img);
+
+    const cb = document.createElement("div");
+    cb.className = "cb";
+
+    const title = document.createElement("div");
+    title.className = "title";
+    title.textContent = `${idx+1}) ${it.name || "بدون اسم"}`;
+    cb.appendChild(title);
+
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.appendChild(tag(it.developer || "—"));
+    if(it.unit_bedrooms) meta.appendChild(tag("غرف: " + it.unit_bedrooms));
+    const area = it.area || it.unit_area;
+    if(area) meta.appendChild(tag("مساحة: " + area));
+    const price = it.min_price || it.price;
+    const curr  = it.price_currency || "";
+    if(price) meta.appendChild(tag(`من ${price} ${curr}`));
+    card.appendChild(cb);
+
+    cb.appendChild(meta);
+
+    const c = getCoords(it);
+    const a = document.createElement("a");
+    a.className = "link";
+    if(c){
+      a.href = `https://maps.google.com/?q=${c.lat},${c.lng}`;
+      a.target = "_blank";
+      a.rel = "noopener";
+      a.textContent = "فتح على Google Maps";
+    } else {
+      a.href = "javascript:void(0)";
+      a.style.opacity = ".6";
+      a.style.pointerEvents = "none";
+      a.textContent = "لا توجد إحداثيات";
+    }
+    cb.appendChild(a);
+
+    const muted = document.createElement("div");
+    muted.className = "mutedline";
+    muted.textContent = "إذا بدك تعدّل الفلاتر: اكتب (إعادة) أو اضغط زر إعادة بدء.";
+    cb.appendChild(muted);
+
+    bubble2.appendChild(card);
+    cardRow.appendChild(bubble2);
+    chat.appendChild(cardRow);
+  });
+
+  scrollBottom();
+}
+function tag(t){
+  const s = document.createElement("span");
+  s.className = "tag";
+  s.textContent = t;
+  return s;
+}
+
+/** =========================
+ *  Data Helpers (من كودك)
+ *  ========================= */
+function tryParseJSON(s){ try{ return JSON.parse(s) }catch{return null;} }
+function isImg(u){ return typeof u==="string" && /^https?:\/\//.test(u); }
+function getImage(it){
+  if(typeof it.cover_image_url==="string"){
+    const p=tryParseJSON(it.cover_image_url);
+    if(p?.url) return p.url;
+    if(isImg(it.cover_image_url)) return it.cover_image_url;
+  }
+  return "https://dummyimage.com/900x506/e5e7eb/111827&text=No+Image";
+}
+function getCoords(it){
+  if(typeof it.coordinates==="string"){
+    const parts = it.coordinates.split(",").map(v=>Number(v.trim()));
+    if(parts.length>=2 && parts.every(Number.isFinite)) return {lat:parts[0], lng:parts[1]};
+  }
+  return null;
+}
+function buildParams(obj){
+  const p=new URLSearchParams();
+  Object.entries(obj).forEach(([k,v])=>{
+    if(v===undefined || v===null) return;
+    const s=String(v).trim();
+    if(s==="") return;
+    p.append(k,s);
+  });
+  return p.toString();
+}
+
+/** =========================
+ *  API Fetch (GET ثم POST)
+ *  ========================= */
+async function smartFetch(payload){
+  const qs = buildParams(payload);
+
+  // GET
+  let url = `${API_BASE}?${qs}`;
+  let r = await fetch(url,{
+    method:"GET",
+    headers:{ [API_KEY_HEADER]:API_KEY, "accept":"application/json" }
+  });
+  if(r.ok) return {r,url};
+
+  // POST
+  url = API_BASE;
+  r = await fetch(url,{
+    method:"POST",
+    headers:{ [API_KEY_HEADER]:API_KEY, "Content-Type":"application/json", "accept":"application/json" },
+    body: JSON.stringify(payload)
+  });
+  return {r,url};
+}
+
+/** =========================
+ *  Bot State Machine
+ *  ========================= */
+const state = {
+  step: 0,
+  filters: {
+    country: "UAE",
+    region: "",
+    search_query: "",
+    unit_price_from: "",
+    unit_price_to: "",
+    unit_bedrooms: "",
+    developer: "",
+    post_handover: ""
+  }
+};
+
+function resetBot(){
+  state.step = 0;
+  state.filters = { country:"UAE", region:"", search_query:"", unit_price_from:"", unit_price_to:"", unit_bedrooms:"", developer:"", post_handover:"" };
+  chat.innerHTML = "";
+  greet();
+}
+
+function greet(){
+  addBubble("أهلًا 👋\nأنا بوت عقارات.\nبس جاوبني كم سؤال وبطلعلك أفضل 5 مشاريع مناسبة.");
+  askStep();
+}
+
+function askStep(){
+  if(state.step === 0){
+    addBubble("1) بأي إمارة بدك تبحث؟");
+    addChips([
+      {label:"Dubai", value:"Dubai"},
+      {label:"Abu Dhabi", value:"Abu Dhabi"},
+      {label:"Sharjah", value:"Sharjah"},
+      {label:"UAE (كل الإمارات)", value:"UAE"}
+    ], v => handleUser(v));
+    return;
+  }
+  if(state.step === 1){
+    addBubble("2) اكتب منطقة/كلمة مفتاحية (مثال: Marina / Downtown / JVC) أو اكتب: تخطي");
+    addChips(["Marina","Downtown","JVC","Business Bay","Palm Jumeirah","تخطي"], v => handleUser(v));
+    return;
+  }
+  if(state.step === 2){
+    addBubble("3) اختر نطاق السعر (AED) أو اكتب: تخطي");
+    addChips([
+      {label:"أقل من 1M", value:"<1m"},
+      {label:"1M - 2M", value:"1-2m"},
+      {label:"أكثر من 2M", value:">2m"},
+      {label:"تخطي", value:"skip"}
+    ], v => handleUser(v));
+    return;
+  }
+  if(state.step === 3){
+    addBubble("4) عدد الغرف؟ (Studio / 1 / 2 / 3+) أو اكتب: تخطي");
+    addChips([
+      {label:"Studio", value:"studio"},
+      {label:"1", value:"1"},
+      {label:"2", value:"2"},
+      {label:"3+", value:"3"},
+      {label:"تخطي", value:"skip"}
+    ], v => handleUser(v));
+    return;
+  }
+  if(state.step === 4){
+    addBubble("5) بدك خطة دفع بعد التسليم (Post Handover)؟");
+    addChips([
+      {label:"نعم", value:"true"},
+      {label:"لا", value:"false"},
+      {label:"تخطي", value:"skip"}
+    ], v => handleUser(v));
+    return;
+  }
+  if(state.step === 5){
+    runSearch();
+  }
+}
+
+function normalize(text){
+  return String(text || "").trim();
+}
+
+function handleUser(text){
+  const msg = normalize(text);
+  if(!msg) return;
+
+  addBubble(msg, "user");
+
+  // أوامر عامة
+  const lower = msg.toLowerCase();
+  if(msg === "إعادة" || msg === "reset" || lower.includes("restart")){
+    resetBot();
+    return;
+  }
+
+  // خطوات
+  if(state.step === 0){
+    // region
+    if(msg === "UAE"){
+      state.filters.region = "";
+      state.filters.search_query = "UAE";
+    } else {
+      state.filters.region = msg;
+      state.filters.search_query = msg; // كبداية
+    }
+    state.step = 1;
+    askStep();
+    return;
+  }
+
+  if(state.step === 1){
+    if(msg !== "تخطي" && msg.toLowerCase() !== "skip"){
+      state.filters.search_query = msg;
+    }
+    state.step = 2;
+    askStep();
+    return;
+  }
+
+  if(state.step === 2){
+    // price preset
+    if(msg === "<1m"){
+      state.filters.unit_price_from = "";
+      state.filters.unit_price_to = "1000000";
+    } else if(msg === "1-2m"){
+      state.filters.unit_price_from = "1000000";
+      state.filters.unit_price_to = "2000000";
+    } else if(msg === ">2m"){
+      state.filters.unit_price_from = "2000000";
+      state.filters.unit_price_to = "";
+    } else if(msg !== "skip" && msg !== "تخطي"){
+      // لو كتب رقمين بصيغة "500000-1500000"
+      const m = msg.replace(/\s/g,"").split("-");
+      if(m.length === 2){
+        state.filters.unit_price_from = m[0];
+        state.filters.unit_price_to = m[1];
+      }
+    }
+    state.step = 3;
+    askStep();
+    return;
+  }
+
+  if(state.step === 3){
+    if(msg !== "skip" && msg !== "تخطي"){
+      state.filters.unit_bedrooms = msg;
+    }
+    state.step = 4;
+    askStep();
+    return;
+  }
+
+  if(state.step === 4){
+    if(msg !== "skip" && msg !== "تخطي"){
+      state.filters.post_handover = msg; // true/false
+    }
+    state.step = 5;
+    askStep();
+    return;
+  }
+}
+
+async function runSearch(){
+  addBubble("تمام ✅ عم دور لك هلّق على أفضل 5 نتائج...");
+
+  const payload = {
+    country: state.filters.country,
+    region: state.filters.region,
+    search_query: state.filters.search_query,
+    unit_price_from: state.filters.unit_price_from,
+    unit_price_to: state.filters.unit_price_to,
+    unit_bedrooms: state.filters.unit_bedrooms,
+    developer: state.filters.developer,
+    post_handover: state.filters.post_handover,
+    per_page: 5,
+    page: 1
+  };
+
+  try{
+    const {r, url} = await smartFetch(payload);
+    const text = await r.text();
+    let data={}; try{ data=JSON.parse(text); }catch(e){}
+
+    if(!r.ok){
+      addBubble(`صار خطأ بالجلب ❌\nStatus: ${r.status}\nجرّب لاحقًا أو عدّل الفلاتر.\n\n(تفاصيل) ${url}`);
+      return;
+    }
+
+    const items = data.items || data.data || data.results || [];
+    if(!items.length){
+      addBubble("ما لقيت نتائج مطابقة 😕\nجرّب تغيّر المنطقة أو السعر.\nاكتب: إعادة");
+      return;
+    }
+
+    addCards(items);
+    addBubble("إذا بدك تعمل بحث جديد: اكتب (إعادة) أو اضغط زر إعادة بدء.");
+
+  } catch(err){
+    addBubble("صار خطأ بالشبكة ❌\nتأكد إن رابط الـ API شغّال وإن المتصفح ما عم يمنع الطلبات.");
+  }
+}
+
+/** =========================
+ *  Events
+ *  ========================= */
+sendBtn.addEventListener("click", ()=>{ handleUser(input.value); input.value=""; input.focus(); });
+input.addEventListener("keydown", (e)=>{
+  if(e.key === "Enter"){ e.preventDefault(); sendBtn.click(); }
+});
+resetBtn.addEventListener("click", resetBot);
+demoBtn.addEventListener("click", ()=>{
+  // يعبّي قيم تجريبية سريعًا
+  addBubble("مشروع", "user");
+  state.step = 0;
+  handleUser("Dubai");
+  handleUser("Marina");
+  handleUser("1-2m");
+  handleUser("2");
+  handleUser("true");
+});
+
+resetBot();
+</script>
 </body>
 </html>
