@@ -1,441 +1,102 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Reelly Prompt Bot (Debug + Fallback)</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Reelly API - Simple Fetch</title>
   <style>
-    :root{
-      --bg:#f5f5f7;--panel:#fff;--stroke:#e5e7eb;--muted:#6b7280;
-      --text:#111827;--a:#2563eb;--a2:#0ea5e9;
-      --bot:#eef2ff;--user:#ecfeff;--warn:#fff7ed;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;background:var(--bg);color:var(--text);
-      font-family:"Cairo",system-ui,-apple-system,Segoe UI,Tahoma;
-      display:flex;justify-content:center;padding:16px;
-    }
-    .app{
-      width:min(1000px,100%);
-      height:min(92vh,900px);
-      background:var(--panel);
-      border:1px solid var(--stroke);
-      border-radius:18px;
-      display:flex;flex-direction:column;
-      overflow:hidden;
-      box-shadow:0 16px 40px rgba(15,23,42,.08);
-    }
-    .top{
-      padding:12px 14px;border-bottom:1px solid var(--stroke);
-      display:flex;justify-content:space-between;align-items:center;
-      background:linear-gradient(90deg,#fff,#f9fafb);
-    }
-    .brand{display:flex;gap:10px;align-items:center;font-weight:900}
-    .pill{
-      width:34px;height:34px;border-radius:999px;
-      background:radial-gradient(circle at 30% 30%,var(--a2),var(--a));
-      color:#fff;display:grid;place-items:center;
-    }
-    .sub{font-size:12px;color:var(--muted);font-weight:700}
-    .btn{
-      border:1px solid var(--stroke);background:#fff;
-      border-radius:999px;padding:8px 12px;
-      cursor:pointer;font-weight:900;font-size:12px;
-    }
-    .btn.primary{
-      border:0;color:#fff;
-      background:linear-gradient(90deg,var(--a),var(--a2));
-      box-shadow:0 10px 22px rgba(37,99,235,.22);
-    }
-    .chat{
-      flex:1;overflow:auto;padding:14px;
-      background:radial-gradient(circle at top, rgba(209,213,219,.55) 0, rgba(245,245,247,1) 60%);
-    }
-    .row{display:flex;margin:10px 0}
-    .row.bot{justify-content:flex-start}
-    .row.user{justify-content:flex-end}
-    .bubble{
-      max-width:min(78%,760px);
-      border:1px solid var(--stroke);
-      border-radius:16px;padding:10px 12px;
-      font-size:14px;line-height:1.6;
-      box-shadow:0 8px 18px rgba(15,23,42,.05);
-      white-space:pre-wrap;
-    }
-    .row.bot .bubble{background:var(--bot);border-top-right-radius:6px}
-    .row.user .bubble{background:var(--user);border-top-left-radius:6px}
-    .bubble.debug{background:#0b1220;color:#e5e7eb;border-color:#111827;font-size:12px}
-    .bubble.warn{background:var(--warn)}
-    .composer{
-      padding:12px;border-top:1px solid var(--stroke);
-      display:flex;gap:10px;background:#fff;
-    }
-    input{
-      flex:1;border:1px solid #d1d5db;border-radius:12px;
-      padding:12px;font-size:14px;
-    }
-    .send{
-      border:0;border-radius:12px;padding:12px 16px;
-      font-weight:900;cursor:pointer;color:#fff;
-      background:linear-gradient(90deg,var(--a),var(--a2));
-    }
-    .card{
-      background:#fff;border:1px solid var(--stroke);
-      border-radius:14px;overflow:hidden;margin-top:10px;
-    }
-    .card img{width:100%;aspect-ratio:16/9;object-fit:cover;background:#e5e7eb}
-    .cb{padding:10px 12px}
-    .title{font-weight:900;margin-bottom:6px}
-    .meta{display:flex;flex-wrap:wrap;gap:6px}
-    .tag{
-      background:#f3f4f6;border:1px solid var(--stroke);
-      padding:3px 8px;border-radius:999px;
-      font-size:12px;font-weight:800;
-    }
-    .link{
-      display:block;margin-top:10px;text-align:center;
-      border:1px solid #d1d5db;background:#f9fafb;
-      border-radius:999px;padding:8px;
-      text-decoration:none;color:#2563eb;font-weight:900;
-    }
+    body{font-family:system-ui,-apple-system,Segoe UI,Tahoma; padding:16px; background:#f7f7fb;}
+    .box{background:#fff; border:1px solid #ddd; border-radius:12px; padding:12px; margin:10px 0;}
+    input{width:100%; padding:10px; border:1px solid #ccc; border-radius:10px;}
+    button{padding:10px 14px; border:0; border-radius:10px; background:#2563eb; color:#fff; font-weight:700; cursor:pointer;}
+    pre{white-space:pre-wrap; word-break:break-word; background:#0b1220; color:#e5e7eb; padding:12px; border-radius:12px;}
   </style>
 </head>
-
 <body>
-<div class="app">
-  <div class="top">
-    <div class="brand">
-      <div class="pill">RB</div>
-      <div>
-        <div>Reelly Prompt Bot</div>
-        <div class="sub">Debug + Smart Fallback</div>
-      </div>
-    </div>
-    <div style="display:flex;gap:8px;align-items:center;">
-      <button class="btn" id="reset">إعادة</button>
-      <button class="btn primary" id="exampleform">مثال</button>
+
+  <h2>Reelly API (Simple)</h2>
+
+  <div class="box">
+    <label>Query String (Parameters)</label>
+    <input id="qs" value="country=UAE&region=Dubai&search_query=Dubai&per_page=5&page=1" />
+    <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+      <button id="go">Fetch</button>
+      <button id="dubai">Dubai</button>
+      <button id="marina">Marina</button>
+      <button id="reset">Reset</button>
     </div>
   </div>
 
-  <div class="chat" id="chat"></div>
-
-  <div class="composer">
-    <input id="input" placeholder="اكتب طلبك: سعر، غرف، منطقة...">
-    <button class="send" id="send">إرسال</button>
+  <div class="box">
+    <div><b>Status:</b> <span id="status">—</span></div>
+    <div><b>URL:</b> <span id="url">—</span></div>
   </div>
-</div>
+
+  <div class="box">
+    <h3>Results (raw JSON)</h3>
+    <pre id="out">اضغط Fetch…</pre>
+  </div>
 
 <script>
-/* ================= API CONFIG ================= */
-const API_BASE = "https://search-listings-production.up.railway.app/v1/properties";
-const API_KEY  = "reelly-80fd5f24-WLrF9bAxkGwYrUXFjrIyzNxRlzrB4kpH"; // 🔴 حط مفتاحك
-const API_KEY_HEADER = "X-API-Key";
+  const API_BASE = "https://search-listings-production.up.railway.app/v1/properties";
+  const API_KEY  = "reelly-80fd5f24-WLrF9bAxkGwYrUXFjrIyzNxRlzrB4kpH";
 
-/* ================= UI HELPERS ================= */
-const chat = document.getElementById("chat");
-const input = document.getElementById("input");
+  const qsEl = document.getElementById("qs");
+  const outEl = document.getElementById("out");
+  const statusEl = document.getElementById("status");
+  const urlEl = document.getElementById("url");
 
-function addBubble(text, who, cls=""){
-  const r=document.createElement("div");
-  r.className="row "+who;
-  const b=document.createElement("div");
-  b.className="bubble"+(cls?(" "+cls):"");
-  b.textContent=text;
-  r.appendChild(b); chat.appendChild(r);
-  chat.scrollTop=chat.scrollHeight;
-}
-const bot = t => addBubble(t,"bot");
-const user = t => addBubble(t,"user");
-const debug = t => addBubble(t,"bot","debug");
-const warn = t => addBubble(t,"bot","warn");
+  async function fetchReelly(){
+    const qs = qsEl.value.trim();
+    const url = `${API_BASE}?${qs}`;
 
-function tryParseJSON(s){ try{return JSON.parse(s)}catch{return null} }
-function isImg(u){ return typeof u==="string" && /^https?:\/\//.test(u); }
-function getImage(it){
-  if(typeof it.cover_image_url==="string"){
-    const p=tryParseJSON(it.cover_image_url);
-    if(p?.url) return p.url;
-    if(isImg(it.cover_image_url)) return it.cover_image_url;
-  }
-  return "https://dummyimage.com/900x500/e5e7eb/111827&text=No+Image";
-}
-function getCoords(it){
-  if(typeof it.coordinates==="string"){
-    const p=it.coordinates.split(",").map(v=>Number(v.trim()));
-    if(p.length>=2 && p.every(Number.isFinite)) return {lat:p[0],lng:p[1]};
-  }
-  return null;
-}
-function tag(t){const s=document.createElement("span");s.className="tag";s.textContent=t;return s;}
+    statusEl.textContent = "…";
+    urlEl.textContent = url;
+    outEl.textContent = "Loading...";
 
-function addCards(items){
-  bot("أفضل النتائج 👇");
-  items.slice(0,5).forEach((it,i)=>{
-    const row=document.createElement("div");row.className="row bot";
-    const b=document.createElement("div");b.className="bubble";
-    const c=document.createElement("div");c.className="card";
-    const img=document.createElement("img");img.src=getImage(it);c.appendChild(img);
-    const cb=document.createElement("div");cb.className="cb";
-    const t=document.createElement("div");t.className="title";t.textContent=`${i+1}) ${it.name||"بدون اسم"}`;cb.appendChild(t);
-    const m=document.createElement("div");m.className="meta";
-    m.appendChild(tag(it.developer||"—"));
-    if(it.unit_bedrooms) m.appendChild(tag("غرف: "+it.unit_bedrooms));
-    const price=it.min_price||it.price;
-    if(price) m.appendChild(tag("من "+price+" "+(it.price_currency||"")));
-    cb.appendChild(m);
-    const co=getCoords(it);
-    const a=document.createElement("a");a.className="link";
-    if(co){a.href=`https://maps.google.com/?q=${co.lat},${co.lng}`;a.target="_blank";a.rel="noopener";a.textContent="فتح على Google Maps";}
-    else{a.textContent="لا توجد إحداثيات";a.style.pointerEvents="none";a.style.opacity=".6";}
-    cb.appendChild(a);
-    c.appendChild(cb);b.appendChild(c);row.appendChild(b);chat.appendChild(row);
-  });
-  chat.scrollTop=chat.scrollHeight;
-}
+    try{
+      const r = await fetch(url, {
+        method: "GET",
+        headers: {
+          "X-API-Key": API_KEY,
+          "accept": "application/json"
+        }
+      });
 
-/* ================= PROMPT PARSING =================
-   بسيطة (Rule-based). إذا بدك توسعتها منعملها.
-*/
-function parsePrompt(text){
-  const t=text.toLowerCase();
-  const f={
-    country:"UAE",
-    region:"",
-    search_query:"",
-    unit_bedrooms:"",
-    unit_price_from:"",
-    unit_price_to:"",
-    post_handover:""
-  };
+      const text = await r.text();
+      statusEl.textContent = r.status;
 
-  // Region
-  if(/abu dhabi|أبوظبي/.test(t)) f.region="Abu Dhabi";
-  else if(/sharjah|الشارقة/.test(t)) f.region="Sharjah";
-  else if(/dubai|دبي/.test(t)) f.region="Dubai";
-  else if(/uae|الإمارات/.test(t)) f.region="";
-
-  // Search query
-  if(/marina|مارينا/.test(t)) f.search_query="Marina";
-  else if(/downtown|داونتاون/.test(t)) f.search_query="Downtown";
-  else if(/jvc|قرية جميرا|jumeirah village circle/.test(t)) f.search_query="JVC";
-  else if(/business bay|بزنس باي/.test(t)) f.search_query="Business Bay";
-  else if(/palm jumeirah|نخلة جميرا|palm/.test(t)) f.search_query="Palm Jumeirah";
-  else f.search_query = f.region || "UAE";
-
-  // Bedrooms
-  if(/studio|استوديو/.test(t)) f.unit_bedrooms="studio";
-  const b=t.match(/(\d+)\s*(?:غرف|غرفة|bed|beds|br)/);
-  if(b) f.unit_bedrooms=b[1];
-  if(/3\+|3\s*\+/.test(t)) f.unit_bedrooms="3";
-
-  // Price: "بين 1 و 2 مليون"
-  const p1=t.match(/بين\s*(\d+(?:\.\d+)?)\s*و\s*(\d+(?:\.\d+)?)(?:\s*مليون)?/);
-  if(p1){
-    f.unit_price_from = String(Math.round(Number(p1[1])*1_000_000));
-    f.unit_price_to   = String(Math.round(Number(p1[2])*1_000_000));
-  }
-
-  // Also handle "1-2m" / "1-2"
-  const p2=t.match(/(\d+(?:\.\d+)?)\s*[-–]\s*(\d+(?:\.\d+)?)(?:\s*m| مليون)?/);
-  if(!f.unit_price_from && p2){
-    const a=Number(p2[1]), b2=Number(p2[2]);
-    if(Number.isFinite(a) && Number.isFinite(b2)){
-      f.unit_price_from = String(a < 50 ? Math.round(a*1_000_000) : Math.round(a));
-      f.unit_price_to   = String(b2 < 50 ? Math.round(b2*1_000_000) : Math.round(b2));
-    }
-  }
-
-  // Post handover
-  if(/post handover|بوست|بعد التسليم/.test(t)) f.post_handover="true";
-  if(/بدون بوست|خلال الإنشاء|عادي/.test(t)) f.post_handover="false";
-
-  return f;
-}
-
-/* ================= SMART FETCH (نفس الترتيب) ================= */
-function buildParams(o){
-  const p=new URLSearchParams();
-  Object.entries(o).forEach(([k,v])=>{
-    if(v === undefined || v === null) return;
-    const s=String(v).trim();
-    if(s==="") return;
-    p.append(k,s);
-  });
-  return p.toString();
-}
-
-async function smartFetchReelly(payload){
-  const qs=buildParams(payload);
-
-  // 1) GET + HEADER
-  let url=`${API_BASE}?${qs}`;
-  let r=await fetch(url,{
-    method:"GET",
-    headers:{
-      [API_KEY_HEADER]:API_KEY,
-      "accept":"application/json"
-    }
-  });
-  if(r.ok) return {r,mode:"GET+HEADER",url};
-
-  // 2) POST + HEADER
-  url=API_BASE;
-  r=await fetch(url,{
-    method:"POST",
-    headers:{
-      [API_KEY_HEADER]:API_KEY,
-      "Content-Type":"application/json",
-      "accept":"application/json"
-    },
-    body:JSON.stringify(payload)
-  });
-  if(r.ok) return {r,mode:"POST+HEADER",url};
-
-  // 3) GET + QUERY KEY
-  url=`${API_BASE}?${qs}&api_key=${encodeURIComponent(API_KEY)}`;
-  r=await fetch(url,{method:"GET"});
-  return {r,mode:"GET+QUERYKEY",url};
-}
-
-async function search(filters){
-  const payload={...filters,per_page:5,page:1};
-  const {r,mode,url}=await smartFetchReelly(payload);
-
-  const txt=await r.text();
-  let d={}; try{ d=JSON.parse(txt) }catch{}
-
-  if(!r.ok){
-    return {ok:false,status:r.status,mode,url,raw:d};
-  }
-  const items=d.items||d.data||d.results||[];
-  return {ok:true,items,mode,url};
-}
-
-/* ================= SMART FALLBACK =================
-   إذا ما في نتائج، نوسّع البحث على مراحل.
-*/
-function clone(obj){ return JSON.parse(JSON.stringify(obj)); }
-
-async function searchWithFallback(originalFilters){
-  const attempts = [];
-
-  // A0: نفس الفلاتر
-  attempts.push({ label:"A0: نفس الفلاتر", filters: clone(originalFilters) });
-
-  // A1: إزالة post_handover
-  const a1 = clone(originalFilters);
-  a1.post_handover = "";
-  attempts.push({ label:"A1: بدون Post Handover", filters: a1 });
-
-  // A2: إزالة search_query (بس region + price + beds)
-  const a2 = clone(a1);
-  a2.search_query = a2.region || "UAE";
-  attempts.push({ label:"A2: توسيع المنطقة", filters: a2 });
-
-  // A3: إزالة bedrooms
-  const a3 = clone(a2);
-  a3.unit_bedrooms = "";
-  attempts.push({ label:"A3: بدون فلتر الغرف", filters: a3 });
-
-  // A4: إزالة price (أوسع)
-  const a4 = clone(a3);
-  a4.unit_price_from = "";
-  a4.unit_price_to = "";
-  attempts.push({ label:"A4: بدون السعر", filters: a4 });
-
-  for (let i=0; i<attempts.length; i++){
-    const att = attempts[i];
-    bot(`🔎 محاولة ${i+1}/${attempts.length}… (${att.label})`);
-    const res = await search(att.filters);
-
-    // Debug message لكل محاولة
-    if(!res.ok){
-      debug(
-        `DEBUG\nlabel: ${att.label}\nmode: ${res.mode}\nstatus: ${res.status}\nurl: ${res.url}`
-      );
-      // إذا 401 لا معنى نكمل بمحاولات ثانية غالبًا
-      if(res.status === 401 || res.status === 403){
-        return {ok:false, fatal:true, reason:"AUTH", last:res};
+      // حاول نعرض JSON مرتب، وإذا مو JSON اعرضه نص
+      try{
+        const data = JSON.parse(text);
+        outEl.textContent = JSON.stringify(data, null, 2);
+      }catch{
+        outEl.textContent = text;
       }
-      continue;
-    }
 
-    debug(
-      `DEBUG\nlabel: ${att.label}\nmode: ${res.mode}\nstatus: 200\ncount: ${res.items.length}\nurl: ${res.url}`
-    );
-
-    if(res.items.length){
-      return {ok:true, usedLabel: att.label, items: res.items, mode: res.mode, url: res.url};
+    }catch(err){
+      statusEl.textContent = "Network error";
+      outEl.textContent = String(err);
     }
   }
 
-  return {ok:false, fatal:false, reason:"NO_RESULTS"};
-}
+  document.getElementById("go").addEventListener("click", fetchReelly);
 
-/* ================= BOT ================= */
-function reset(){
-  chat.innerHTML="";
-  bot("أهلًا 👋\nاكتب طلبك بحرية (سعر، غرف، منطقة) وأنا أجيب النتائج من Reelly.");
-  warn("ملاحظة: إذا ما ظهرت نتائج، رح أوسّع البحث تلقائيًا (Fallback) وأعرض أقرب نتائج.");
-}
-reset();
+  document.getElementById("dubai").addEventListener("click", ()=>{
+    qsEl.value = "country=UAE&region=Dubai&search_query=Dubai&per_page=5&page=1";
+  });
 
-async function handle(){
-  const q=input.value.trim();
-  if(!q) return;
-  input.value="";
-  user(q);
+  document.getElementById("marina").addEventListener("click", ()=>{
+    qsEl.value = "country=UAE&region=Dubai&search_query=Marina&per_page=5&page=1";
+  });
 
-  if(q === "إعادة" || q.toLowerCase() === "reset"){
-    reset();
-    return;
-  }
-
-  const filters=parsePrompt(q);
-
-  bot(
-`تمام ✅ فهمت طلبك هيك:
-- Region: ${filters.region || "Any"}
-- Query: ${filters.search_query || "Any"}
-- Bedrooms: ${filters.unit_bedrooms || "Any"}
-- Price: ${filters.unit_price_from || "—"} → ${filters.unit_price_to || "—"}
-- Post Handover: ${filters.post_handover || "Any"}
-
-عم بجيب النتائج...`
-  );
-
-  const out = await searchWithFallback(filters);
-
-  if(out.ok){
-    if(out.usedLabel !== "A0: نفس الفلاتر"){
-      warn(`ما لقيت نتائج مطابقة 100%، فوسّعت البحث (${out.usedLabel}) وهاي أقرب النتائج 👇`);
-    }
-    addCards(out.items);
-    return;
-  }
-
-  if(out.fatal && out.reason === "AUTH"){
-    bot(`❌ فشل المصادقة على الـ API (Unauthorized)\nStatus: ${out.last.status}\nMode: ${out.last.mode}\n\nغالبًا الـ API Key مرفوض من المتصفح أو غير صالح.`);
-    debug(`DEBUG\nlast_url: ${out.last.url}`);
-    return;
-  }
-
-  bot("😕 ما لقيت ولا نتيجة حتى بعد توسيع البحث.\nجرّب تغيّر المنطقة أو توسّع السعر أو احذف بوست هاند أوفر.");
-}
-
-document.getElementById("send").onclick=handle;
-input.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); handle(); }});
-document.getElementById("reset").onclick=reset;
-document.getElementById("exampleform").onclick=()=>{
-  input.value="بدي 2 غرف بدبي مارينا بين 1 و 2 مليون بوست هاند أوفر";
-  input.focus();
-};
+  document.getElementById("reset").addEventListener("click", ()=>{
+    qsEl.value = "country=UAE&region=Dubai&search_query=Dubai&per_page=5&page=1";
+    outEl.textContent = "اضغط Fetch…";
+    statusEl.textContent = "—";
+    urlEl.textContent = "—";
+  });
 </script>
+
 </body>
 </html>
