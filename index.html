@@ -4,100 +4,154 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Reelly Prompt Bot</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+
   <style>
-    :root{--bg:#f5f5f7;--panel:#fff;--stroke:#e5e7eb;--muted:#6b7280;--text:#111827;--a:#2563eb;--a2:#0ea5e9;--bot:#eef2ff;--user:#ecfeff;}
+    :root{
+      --bg:#f5f5f7;--panel:#fff;--stroke:#e5e7eb;--muted:#6b7280;
+      --text:#111827;--a:#2563eb;--a2:#0ea5e9;
+      --bot:#eef2ff;--user:#ecfeff;
+    }
     *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--text);font-family:"Cairo",system-ui,-apple-system,Segoe UI,Tahoma;display:flex;justify-content:center;padding:16px;}
-    .app{width:min(980px,100%);height:min(92vh,860px);background:var(--panel);border:1px solid var(--stroke);border-radius:18px;overflow:hidden;box-shadow:0 16px 40px rgba(15,23,42,.08);display:flex;flex-direction:column;}
-    .top{padding:12px 14px;border-bottom:1px solid var(--stroke);display:flex;justify-content:space-between;align-items:center;gap:10px;background:linear-gradient(90deg,#fff,#f9fafb);}
-    .brand{display:flex;align-items:center;gap:10px;font-weight:900}
-    .pill{width:34px;height:34px;border-radius:999px;background:radial-gradient(circle at 30% 30%,var(--a2),var(--a));display:grid;place-items:center;color:#fff}
+    body{
+      margin:0;background:var(--bg);color:var(--text);
+      font-family:"Cairo",system-ui,-apple-system,Segoe UI,Tahoma;
+      display:flex;justify-content:center;padding:16px;
+    }
+    .app{
+      width:min(1000px,100%);
+      height:min(92vh,900px);
+      background:var(--panel);
+      border:1px solid var(--stroke);
+      border-radius:18px;
+      display:flex;flex-direction:column;
+      overflow:hidden;
+      box-shadow:0 16px 40px rgba(15,23,42,.08);
+    }
+    .top{
+      padding:12px 14px;border-bottom:1px solid var(--stroke);
+      display:flex;justify-content:space-between;align-items:center;
+      background:linear-gradient(90deg,#fff,#f9fafb);
+    }
+    .brand{display:flex;gap:10px;align-items:center;font-weight:900}
+    .pill{
+      width:34px;height:34px;border-radius:999px;
+      background:radial-gradient(circle at 30% 30%,var(--a2),var(--a));
+      color:#fff;display:grid;place-items:center;
+    }
     .sub{font-size:12px;color:var(--muted);font-weight:700}
-    .btn{border:1px solid var(--stroke);background:#fff;border-radius:999px;padding:8px 12px;cursor:pointer;font-weight:900;font-size:12px}
-    .btn.primary{border:0;background:linear-gradient(90deg,var(--a),var(--a2));color:#fff;box-shadow:0 10px 22px rgba(37,99,235,.22)}
-    .chat{flex:1;overflow:auto;padding:14px;background:radial-gradient(circle at top, rgba(209,213,219,0.55) 0, rgba(245,245,247,1) 60%);}
-    .row{display:flex;margin:10px 0;}
-    .row.bot{justify-content:flex-start;}
-    .row.user{justify-content:flex-end;}
-    .bubble{max-width:min(78%,680px);border:1px solid var(--stroke);border-radius:16px;padding:10px 12px;box-shadow:0 8px 18px rgba(15,23,42,.05);line-height:1.6;font-size:14px;white-space:pre-wrap;}
-    .row.bot .bubble{background:var(--bot);border-top-right-radius:6px;}
-    .row.user .bubble{background:var(--user);border-top-left-radius:6px;}
-    .composer{padding:12px;border-top:1px solid var(--stroke);display:flex;gap:10px;background:#fff;}
-    input{flex:1;border:1px solid #d1d5db;border-radius:12px;padding:12px 12px;font-size:14px;outline:none;}
-    input:focus{border-color:#93c5fd;box-shadow:0 0 0 4px rgba(59,130,246,.12);}
-    .send{border:0;border-radius:12px;padding:12px 14px;cursor:pointer;font-weight:900;background:linear-gradient(90deg,var(--a),var(--a2));color:#fff;}
-    .card{background:#fff;border:1px solid var(--stroke);border-radius:14px;overflow:hidden;margin-top:10px;}
-    .card img{width:100%;aspect-ratio:16/9;object-fit:cover;background:#e5e7eb;display:block;}
-    .cb{padding:10px 12px 12px;}
-    .title{font-weight:900;margin-bottom:6px;}
-    .meta{display:flex;flex-wrap:wrap;gap:6px;}
-    .tag{font-size:12px;background:#f3f4f6;border:1px solid var(--stroke);padding:3px 8px;border-radius:999px;color:#374151;font-weight:900;}
-    .link{display:block;margin-top:10px;text-align:center;border:1px solid #d1d5db;background:#f9fafb;border-radius:999px;padding:8px 10px;text-decoration:none;color:#2563eb;font-weight:900;font-size:13px;}
-    .mutedline{font-size:12px;color:var(--muted);margin-top:6px;}
-    code.k{background:#0b1220;color:#e5e7eb;padding:2px 6px;border-radius:8px;font-size:12px}
+    .btn{
+      border:1px solid var(--stroke);background:#fff;
+      border-radius:999px;padding:8px 12px;
+      cursor:pointer;font-weight:900;font-size:12px;
+    }
+    .btn.primary{
+      border:0;color:#fff;
+      background:linear-gradient(90deg,var(--a),var(--a2));
+      box-shadow:0 10px 22px rgba(37,99,235,.22);
+    }
+    .chat{
+      flex:1;overflow:auto;padding:14px;
+      background:radial-gradient(circle at top, rgba(209,213,219,.55) 0, rgba(245,245,247,1) 60%);
+    }
+    .row{display:flex;margin:10px 0}
+    .row.bot{justify-content:flex-start}
+    .row.user{justify-content:flex-end}
+    .bubble{
+      max-width:min(78%,720px);
+      border:1px solid var(--stroke);
+      border-radius:16px;padding:10px 12px;
+      font-size:14px;line-height:1.6;
+      box-shadow:0 8px 18px rgba(15,23,42,.05);
+      white-space:pre-wrap;
+    }
+    .row.bot .bubble{background:var(--bot);border-top-right-radius:6px}
+    .row.user .bubble{background:var(--user);border-top-left-radius:6px}
+    .composer{
+      padding:12px;border-top:1px solid var(--stroke);
+      display:flex;gap:10px;background:#fff;
+    }
+    input{
+      flex:1;border:1px solid #d1d5db;border-radius:12px;
+      padding:12px;font-size:14px;
+    }
+    .send{
+      border:0;border-radius:12px;padding:12px 16px;
+      font-weight:900;cursor:pointer;color:#fff;
+      background:linear-gradient(90deg,var(--a),var(--a2));
+    }
+    .card{
+      background:#fff;border:1px solid var(--stroke);
+      border-radius:14px;overflow:hidden;margin-top:10px;
+    }
+    .card img{width:100%;aspect-ratio:16/9;object-fit:cover;background:#e5e7eb}
+    .cb{padding:10px 12px}
+    .title{font-weight:900;margin-bottom:6px}
+    .meta{display:flex;flex-wrap:wrap;gap:6px}
+    .tag{
+      background:#f3f4f6;border:1px solid var(--stroke);
+      padding:3px 8px;border-radius:999px;
+      font-size:12px;font-weight:800;
+    }
+    .link{
+      display:block;margin-top:10px;text-align:center;
+      border:1px solid #d1d5db;background:#f9fafb;
+      border-radius:999px;padding:8px;
+      text-decoration:none;color:#2563eb;font-weight:900;
+    }
   </style>
 </head>
+
 <body>
-  <div class="app">
-    <div class="top">
-      <div class="brand">
-        <div class="pill">RB</div>
-        <div>
-          <div>Reelly Prompt Bot</div>
-          <div class="sub">اكتب طلبك بحرية → يرجع لك نتائج</div>
-        </div>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <button class="btn" id="reset">إعادة بدء</button>
-        <button class="btn primary" id="examples">أمثلة</button>
+<div class="app">
+  <div class="top">
+    <div class="brand">
+      <div class="pill">RB</div>
+      <div>
+        <div>Reelly Prompt Bot</div>
+        <div class="sub">اكتب طلبك بحرية ← نتائج مباشرة</div>
       </div>
     </div>
-
-    <div class="chat" id="chat"></div>
-
-    <div class="composer">
-      <input id="input" placeholder="مثال: بدي 2 غرف بدبي مارينا بين 1 و 2 مليون وبوست هاند أوفر" autocomplete="off"/>
-      <button class="send" id="send">إرسال</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn" id="reset">إعادة</button>
+      <button class="btn primary" id="example">مثال</button>
     </div>
   </div>
 
+  <div class="chat" id="chat"></div>
+
+  <div class="composer">
+    <input id="input" placeholder="مثال: بدي 2 غرف بدبي مارينا بين 1 و 2 مليون بوست هاند أوفر">
+    <button class="send" id="send">إرسال</button>
+  </div>
+</div>
+
 <script>
-/** =========================
- *  1) إعدادات Reelly API
- *  ========================= */
-const API_BASE  = "https://search-listings-production.up.railway.app/v1/properties";
-const API_KEY   = "PUT_YOUR_REELLY_KEY_HERE"; // غيّره
+/* ================= API CONFIG ================= */
+const API_BASE = "https://search-listings-production.up.railway.app/v1/properties";
+const API_KEY  = "PUT_YOUR_REELLY_API_KEY_HERE"; // 🔴 حط مفتاحك
 const API_KEY_HEADER = "X-API-Key";
 
-/** =========================
- *  2) UI Helpers
- *  ========================= */
+/* ================= UI HELPERS ================= */
 const chat = document.getElementById("chat");
 const input = document.getElementById("input");
-const sendBtn = document.getElementById("send");
-const resetBtn = document.getElementById("reset");
-const examplesBtn = document.getElementById("examples");
-
-function scrollBottom(){ chat.scrollTop = chat.scrollHeight; }
-function bot(text){ addBubble(text,"bot"); }
-function user(text){ addBubble(text,"user"); }
 
 function addBubble(text, who){
-  const row = document.createElement("div");
-  row.className = "row " + who;
-  const b = document.createElement("div");
-  b.className = "bubble";
-  b.textContent = text;
-  row.appendChild(b);
-  chat.appendChild(row);
-  scrollBottom();
-  return b;
+  const r=document.createElement("div");
+  r.className="row "+who;
+  const b=document.createElement("div");
+  b.className="bubble";
+  b.textContent=text;
+  r.appendChild(b); chat.appendChild(r);
+  chat.scrollTop=chat.scrollHeight;
 }
+const bot = t => addBubble(t,"bot");
+const user = t => addBubble(t,"user");
 
-function tryParseJSON(s){ try{ return JSON.parse(s) }catch{return null;} }
+function tryParseJSON(s){ try{return JSON.parse(s)}catch{return null} }
 function isImg(u){ return typeof u==="string" && /^https?:\/\//.test(u); }
 function getImage(it){
   if(typeof it.cover_image_url==="string"){
@@ -105,320 +159,127 @@ function getImage(it){
     if(p?.url) return p.url;
     if(isImg(it.cover_image_url)) return it.cover_image_url;
   }
-  return "https://dummyimage.com/900x506/e5e7eb/111827&text=No+Image";
+  return "https://dummyimage.com/900x500/e5e7eb/111827&text=No+Image";
 }
 function getCoords(it){
   if(typeof it.coordinates==="string"){
-    const parts = it.coordinates.split(",").map(v=>Number(v.trim()));
-    if(parts.length>=2 && parts.every(Number.isFinite)) return {lat:parts[0], lng:parts[1]};
+    const p=it.coordinates.split(",").map(v=>Number(v.trim()));
+    if(p.length>=2 && p.every(Number.isFinite)) return {lat:p[0],lng:p[1]};
   }
   return null;
 }
-function tag(t){
-  const s = document.createElement("span");
-  s.className="tag";
-  s.textContent=t;
-  return s;
-}
+function tag(t){const s=document.createElement("span");s.className="tag";s.textContent=t;return s;}
+
 function addCards(items){
-  bot("هذه أفضل النتائج حسب طلبك 👇");
-  items.slice(0,5).forEach((it, idx)=>{
-    const row = document.createElement("div");
-    row.className="row bot";
-    const bubble = document.createElement("div");
-    bubble.className="bubble";
-
-    const card = document.createElement("div");
-    card.className="card";
-
-    const img = document.createElement("img");
-    img.src = getImage(it);
-    img.alt = "project";
-    card.appendChild(img);
-
-    const cb = document.createElement("div");
-    cb.className="cb";
-
-    const title = document.createElement("div");
-    title.className="title";
-    title.textContent = `${idx+1}) ${it.name || "بدون اسم"}`;
-    cb.appendChild(title);
-
-    const meta = document.createElement("div");
-    meta.className="meta";
-    meta.appendChild(tag(it.developer || "—"));
-    if(it.unit_bedrooms) meta.appendChild(tag("غرف: " + it.unit_bedrooms));
-    const area = it.area || it.unit_area;
-    if(area) meta.appendChild(tag("مساحة: " + area));
-    const price = it.min_price || it.price;
-    const curr  = it.price_currency || "";
-    if(price) meta.appendChild(tag(`من ${price} ${curr}`));
-    cb.appendChild(meta);
-
-    const c = getCoords(it);
-    const a = document.createElement("a");
-    a.className="link";
-    if(c){
-      a.href = `https://maps.google.com/?q=${c.lat},${c.lng}`;
-      a.target="_blank"; a.rel="noopener";
-      a.textContent="فتح على Google Maps";
-    }else{
-      a.href="javascript:void(0)";
-      a.style.opacity=".6"; a.style.pointerEvents="none";
-      a.textContent="لا توجد إحداثيات";
-    }
-    cb.appendChild(a);
-
-    const m = document.createElement("div");
-    m.className="mutedline";
-    m.textContent = "إذا بدك تغيّر الطلب، اكتب طلب جديد مباشرة.";
+  bot("أفضل النتائج حسب طلبك 👇");
+  items.slice(0,5).forEach((it,i)=>{
+    const row=document.createElement("div");row.className="row bot";
+    const b=document.createElement("div");b.className="bubble";
+    const c=document.createElement("div");c.className="card";
+    const img=document.createElement("img");img.src=getImage(it);c.appendChild(img);
+    const cb=document.createElement("div");cb.className="cb";
+    const t=document.createElement("div");t.className="title";t.textContent=`${i+1}) ${it.name||"بدون اسم"}`;cb.appendChild(t);
+    const m=document.createElement("div");m.className="meta";
+    m.appendChild(tag(it.developer||"—"));
+    if(it.unit_bedrooms) m.appendChild(tag("غرف: "+it.unit_bedrooms));
+    const price=it.min_price||it.price;
+    if(price) m.appendChild(tag("من "+price+" "+(it.price_currency||"")));
     cb.appendChild(m);
-
-    card.appendChild(cb);
-    bubble.appendChild(card);
-    row.appendChild(bubble);
-    chat.appendChild(row);
+    const co=getCoords(it);
+    const a=document.createElement("a");a.className="link";
+    if(co){a.href=`https://maps.google.com/?q=${co.lat},${co.lng}`;a.target="_blank";a.textContent="فتح على الخريطة";}
+    else{a.textContent="لا توجد إحداثيات";a.style.pointerEvents="none";a.style.opacity=".6";}
+    cb.appendChild(a);
+    c.appendChild(cb);b.appendChild(c);row.appendChild(b);chat.appendChild(row);
   });
-  scrollBottom();
+  chat.scrollTop=chat.scrollHeight;
 }
 
-/** =========================
- *  3) Prompt → Filters (Rule-based)
- *  ========================= */
-function parsePriceAED(text){
-  // يحاول يلقط: "بين 1 و 2 مليون" / "1-2m" / "1500000"
-  const t = text.toLowerCase();
+/* ================= PROMPT PARSING ================= */
+function parsePrompt(text){
+  const t=text.toLowerCase();
+  const f={country:"UAE",region:"",search_query:"",unit_bedrooms:"",unit_price_from:"",unit_price_to:"",post_handover:""};
 
-  // 1) 1-2m or 1–2m
-  const mShort = t.match(/(\d+(?:\.\d+)?)\s*[-–]\s*(\d+(?:\.\d+)?)(?:\s*m| مليون)?/i);
-  if(mShort){
-    const a = Number(mShort[1]), b = Number(mShort[2]);
-    if(Number.isFinite(a) && Number.isFinite(b)){
-      // إذا أرقام صغيرة نفترض مليون
-      const from = a < 50 ? Math.round(a*1_000_000) : Math.round(a);
-      const to   = b < 50 ? Math.round(b*1_000_000) : Math.round(b);
-      return {from, to};
-    }
-  }
+  if(/dubai|دبي/.test(t)) f.region="Dubai";
+  if(/abu dhabi|أبوظبي/.test(t)) f.region="Abu Dhabi";
+  if(/sharjah|الشارقة/.test(t)) f.region="Sharjah";
 
-  // 2) "بين 1 و 2 مليون"
-  const mBetween = t.match(/بين\s*(\d+(?:\.\d+)?)\s*و\s*(\d+(?:\.\d+)?)(?:\s*مليون)?/i);
-  if(mBetween){
-    const a = Number(mBetween[1]), b = Number(mBetween[2]);
-    if(Number.isFinite(a) && Number.isFinite(b)){
-      return {from: Math.round(a*1_000_000), to: Math.round(b*1_000_000)};
-    }
-  }
+  if(/marina|مارينا/.test(t)) f.search_query="Marina";
+  else if(/downtown|داونتاون/.test(t)) f.search_query="Downtown";
+  else f.search_query=f.region||"UAE";
 
-  // 3) "أقل من 1m" / "تحت 1 مليون"
-  const mUnder = t.match(/(أقل من|تحت|under)\s*(\d+(?:\.\d+)?)(?:\s*m| مليون)?/i);
-  if(mUnder){
-    const x = Number(mUnder[2]);
-    if(Number.isFinite(x)){
-      const to = x < 50 ? Math.round(x*1_000_000) : Math.round(x);
-      return {from: undefined, to};
-    }
-  }
+  if(/studio|استوديو/.test(t)) f.unit_bedrooms="studio";
+  const b=t.match(/(\d+)\s*(?:غرف|bed)/); if(b) f.unit_bedrooms=b[1];
 
-  // 4) "أكثر من 2m" / "فوق 2 مليون"
-  const mOver = t.match(/(أكثر من|فوق|over)\s*(\d+(?:\.\d+)?)(?:\s*m| مليون)?/i);
-  if(mOver){
-    const x = Number(mOver[2]);
-    if(Number.isFinite(x)){
-      const from = x < 50 ? Math.round(x*1_000_000) : Math.round(x);
-      return {from, to: undefined};
-    }
-  }
+  const p=t.match(/بين\s*(\d+)\s*و\s*(\d+)/);
+  if(p){f.unit_price_from=p[1]*1_000_000;f.unit_price_to=p[2]*1_000_000;}
 
-  // 5) رقم صريح كبير
-  const mNum = t.match(/\b(\d{6,8})\b/);
-  if(mNum){
-    const x = Number(mNum[1]);
-    if(Number.isFinite(x)) return {from: x, to: undefined};
-  }
-
-  return {};
+  if(/post|بوست|بعد التسليم/.test(t)) f.post_handover="true";
+  return f;
 }
 
-function parseBedrooms(text){
-  const t = text.toLowerCase();
-  if(/studio|استوديو/.test(t)) return "studio";
-  const m = t.match(/(\d+)\s*(?:غرف|غرفة|bed|beds|br)/i);
-  if(m) return m[1];
-  // أحيانًا يكتب: "2 غرف"
-  const m2 = t.match(/\b(\d+)\b/);
-  if(m2 && ["0","1","2","3","4","5","6"].includes(m2[1])) {
-    // ما رح نعتمدها لحالها إلا إذا ذكر غرف/bed، فبلاش
-  }
-  if(/3\+|3\s*\+/.test(t)) return "3";
-  return "";
-}
-
-function parseRegionAndQuery(text){
-  const t = text.toLowerCase();
-  // region = إمارة (Dubai/Abu Dhabi/Sharjah)
-  let region = "";
-  if(/abudhabi|abu dhabi|أبوظبي/.test(t)) region = "Abu Dhabi";
-  else if(/sharjah|الشارقة/.test(t)) region = "Sharjah";
-  else if(/dubai|دبي/.test(t)) region = "Dubai";
-  else if(/uae|الإمارات/.test(t)) region = ""; // كل الإمارات
-
-  // search_query = منطقة/keyword
-  // نلتقط أشهر المناطق أو نتركها من النص
-  const keywords = [
-    {k:/marina|مارينا/i, v:"Marina"},
-    {k:/downtown|داونتاون/i, v:"Downtown"},
-    {k:/jvc|قرية جميرا|jumeirah village circle/i, v:"JVC"},
-    {k:/business bay|بزنس باي/i, v:"Business Bay"},
-    {k:/palm|نخلة جميرا|palm jumeirah/i, v:"Palm Jumeirah"},
-  ];
-  let search_query = "";
-  for(const x of keywords){
-    if(x.k.test(text)){ search_query = x.v; break; }
-  }
-  // fallback: إذا ما لقينا، خلي query = region أو أول كلمة “منطقة …”
-  if(!search_query){
-    // لو ذكر "في (xxx)" أو "ب (xxx)"
-    const m = text.match(/(?:في|ب)\s+([A-Za-z\s]{3,30})/);
-    if(m) search_query = m[1].trim();
-    else search_query = region || "UAE";
-  }
-  return {region, search_query};
-}
-
-function parsePostHandover(text){
-  const t = text.toLowerCase();
-  if(/post handover|بوست|بعد التسليم/.test(t)) return "true";
-  if(/بدون بوست|بدون بعد التسليم|خلال الإنشاء|عادي/.test(t)) return "false";
-  return "";
-}
-
-function buildFiltersFromPrompt(prompt){
-  const {region, search_query} = parseRegionAndQuery(prompt);
-  const beds = parseBedrooms(prompt);
-  const ph = parsePostHandover(prompt);
-  const price = parsePriceAED(prompt);
-
-  return {
-    country: "UAE",
-    region,
-    search_query,
-    unit_bedrooms: beds,
-    unit_price_from: price.from ?? "",
-    unit_price_to: price.to ?? "",
-    post_handover: ph
-  };
-}
-
-/** =========================
- *  4) API Call
- *  ========================= */
-function buildParams(obj){
-  const p = new URLSearchParams();
-  for(const [k,v] of Object.entries(obj)){
-    if(v === undefined || v === null) continue;
-    const s = String(v).trim();
-    if(s === "") continue;
-    p.append(k, s);
-  }
+/* ================= SMART FETCH ================= */
+function buildParams(o){
+  const p=new URLSearchParams();
+  Object.entries(o).forEach(([k,v])=>{if(v!=="")p.append(k,v)});
   return p.toString();
 }
 
-async function searchReelly(filters){
-  const payload = {
-    ...filters,
-    per_page: 5,
-    page: 1
-  };
+async function smartFetchReelly(payload){
+  const qs=buildParams(payload);
 
-  // GET first
-  const url = `${API_BASE}?${buildParams(payload)}`;
-  const r = await fetch(url, {
-    method:"GET",
-    headers: { [API_KEY_HEADER]: API_KEY, "accept":"application/json" }
+  // 1) GET + HEADER
+  let url=`${API_BASE}?${qs}`;
+  let r=await fetch(url,{headers:{[API_KEY_HEADER]:API_KEY}});
+  if(r.ok) return {r,mode:"GET+HEADER",url};
+
+  // 2) POST + HEADER
+  r=await fetch(API_BASE,{
+    method:"POST",
+    headers:{[API_KEY_HEADER]:API_KEY,"Content-Type":"application/json"},
+    body:JSON.stringify(payload)
   });
+  if(r.ok) return {r,mode:"POST+HEADER",url:API_BASE};
 
-  const text = await r.text();
-  let data = {};
-  try{ data = JSON.parse(text); }catch(e){}
-
-  if(!r.ok){
-    return { ok:false, status:r.status, data, url };
-  }
-  const items = data.items || data.data || data.results || [];
-  return { ok:true, items, url };
+  // 3) GET + QUERY KEY
+  url=`${API_BASE}?${qs}&api_key=${API_KEY}`;
+  r=await fetch(url);
+  return {r,mode:"GET+QUERY",url};
 }
 
-/** =========================
- *  5) Bot Behavior
- *  ========================= */
-function greet(){
-  bot("أهلًا 👋\nاكتب طلبك بحرية وأنا بحوّله لفلاتر وبجيب لك النتائج من Reelly.\n\nمثال:\n“بدي 2 غرف بدبي مارينا بين 1 و 2 مليون وبوست هاند أوفر”");
-  bot("ملاحظة: إذا كان الطلب غامض، جرّب تذكر الإمارة + السعر + عدد الغرف.");
+async function search(filters){
+  const payload={...filters,per_page:5,page:1};
+  const {r,mode,url}=await smartFetchReelly(payload);
+  const txt=await r.text(); let d={}; try{d=JSON.parse(txt)}catch{}
+  if(!r.ok) return {ok:false,status:r.status,mode,url};
+  const items=d.items||d.data||d.results||[];
+  return {ok:true,items,mode};
 }
+
+/* ================= BOT ================= */
 function reset(){
-  chat.innerHTML = "";
-  greet();
+  chat.innerHTML="";
+  bot("أهلًا 👋 اكتب طلبك بحرية (سعر، غرف، منطقة) وأنا أجيب النتائج.");
 }
 reset();
 
-async function handlePrompt(prompt){
-  if(!prompt.trim()) return;
-  user(prompt);
-
-  if(prompt.trim() === "إعادة" || prompt.trim().toLowerCase() === "reset"){
-    reset();
-    return;
-  }
-
-  const filters = buildFiltersFromPrompt(prompt);
-
-  bot(
-`تمام ✅ فهمت طلبك بهالشكل:
-- Country: ${filters.country}
-- Region: ${filters.region || "Any"}
-- Query: ${filters.search_query || "Any"}
-- Bedrooms: ${filters.unit_bedrooms || "Any"}
-- Price: ${filters.unit_price_from || "—"} → ${filters.unit_price_to || "—"}
-- Post Handover: ${filters.post_handover || "Any"}
-
-عم بجيب لك أفضل النتائج...`
-  );
-
-  const res = await searchReelly(filters);
+async function handle(){
+  const q=input.value.trim(); if(!q) return;
+  input.value=""; user(q);
+  const filters=parsePrompt(q);
+  bot("فهمت طلبك، عم أبحث هلّق...");
+  const res=await search(filters);
   if(!res.ok){
-    bot(`صار خطأ بالجلب ❌\nStatus: ${res.status}\n\nتأكد من API Key أو جرّب تغير الطلب.\n(تفاصيل) ${res.url}`);
-    return;
-  }
-  if(!res.items.length){
-    bot("ما لقيت نتائج مطابقة 😕\nجرّب تغيّر المنطقة أو توسّع نطاق السعر.");
+    bot(`❌ فشل الطلب\nStatus: ${res.status}\nMode: ${res.mode}`);
     return;
   }
   addCards(res.items);
 }
 
-/** =========================
- *  6) Events
- *  ========================= */
-sendBtn.addEventListener("click", ()=>{
-  const p = input.value;
-  input.value = "";
-  handlePrompt(p);
-});
-input.addEventListener("keydown", (e)=>{
-  if(e.key === "Enter"){ e.preventDefault(); sendBtn.click(); }
-});
-resetBtn.addEventListener("click", reset);
-
-examplesBtn.addEventListener("click", ()=>{
-  const ex = [
-    "بدي استوديو بدبي داونتاون تحت 1 مليون",
-    "بدّي 2 غرف في دبي مارينا بين 1 و 2 مليون",
-    "ابغى 3 غرف أبوظبي فوق 2 مليون",
-    "بدّي شقة في بزنس باي بوست هاند أوفر"
-  ];
-  bot("اختار مثال وجربه (انسخ/الصق):\n\n" + ex.map((x,i)=>`${i+1}) ${x}`).join("\n"));
-});
+document.getElementById("send").onclick=handle;
+input.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();handle()}});
+document.getElementById("reset").onclick=reset;
+document.getElementById("example").onclick=()=>{input.value="بدي 2 غرف بدبي مارينا بين 1 و 2 مليون بوست هاند أوفر";}
 </script>
 </body>
 </html>
