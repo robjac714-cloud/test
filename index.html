@@ -1,101 +1,162 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Reelly API - Simple Fetch</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>All Reelly Projects</title>
+
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Tahoma; padding:16px; background:#f7f7fb;}
-    .box{background:#fff; border:1px solid #ddd; border-radius:12px; padding:12px; margin:10px 0;}
-    input{width:100%; padding:10px; border:1px solid #ccc; border-radius:10px;}
-    button{padding:10px 14px; border:0; border-radius:10px; background:#2563eb; color:#fff; font-weight:700; cursor:pointer;}
-    pre{white-space:pre-wrap; word-break:break-word; background:#0b1220; color:#e5e7eb; padding:12px; border-radius:12px;}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Tahoma;
+      background:#f5f5f7;
+      padding:20px;
+    }
+    h1{margin-bottom:10px}
+    .top{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:20px;
+    }
+    button{
+      padding:10px 14px;
+      border-radius:10px;
+      border:0;
+      background:#2563eb;
+      color:#fff;
+      font-weight:700;
+      cursor:pointer;
+    }
+    .status{
+      margin:10px 0;
+      font-weight:700;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+      gap:16px;
+    }
+    .card{
+      background:#fff;
+      border-radius:14px;
+      border:1px solid #e5e7eb;
+      overflow:hidden;
+      box-shadow:0 10px 25px rgba(15,23,42,.06);
+    }
+    .card img{
+      width:100%;
+      aspect-ratio:16/10;
+      object-fit:cover;
+      background:#e5e7eb;
+    }
+    .body{
+      padding:12px;
+    }
+    .title{
+      font-weight:800;
+      margin-bottom:6px;
+    }
+    .meta{
+      font-size:13px;
+      color:#555;
+      margin-bottom:6px;
+    }
+    .empty{
+      padding:20px;
+      background:#fff;
+      border:1px dashed #ccc;
+      border-radius:14px;
+      text-align:center;
+      font-weight:700;
+    }
   </style>
 </head>
+
 <body>
 
-  <h2>Reelly API (Simple)</h2>
+<h1>كل مشاريع Reelly</h1>
 
-  <div class="box">
-    <label>Query String (Parameters)</label>
-    <input id="qs" value="country=UAE&region=Dubai&search_query=Dubai&per_page=5&page=1" />
-    <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
-      <button id="go">Fetch</button>
-      <button id="dubai">Dubai</button>
-      <button id="marina">Marina</button>
-      <button id="reset">Reset</button>
-    </div>
-  </div>
+<div class="top">
+  <button id="load">تحميل المشاريع</button>
+</div>
 
-  <div class="box">
-    <div><b>Status:</b> <span id="status">—</span></div>
-    <div><b>URL:</b> <span id="url">—</span></div>
-  </div>
+<div class="status" id="status">—</div>
 
-  <div class="box">
-    <h3>Results (raw JSON)</h3>
-    <pre id="out">اضغط Fetch…</pre>
-  </div>
+<div id="grid" class="grid"></div>
 
 <script>
   const API_BASE = "https://search-listings-production.up.railway.app/v1/properties";
   const API_KEY  = "reelly-80fd5f24-WLrF9bAxkGwYrUXFjrIyzNxRlzrB4kpH";
 
-  const qsEl = document.getElementById("qs");
-  const outEl = document.getElementById("out");
+  const grid = document.getElementById("grid");
   const statusEl = document.getElementById("status");
-  const urlEl = document.getElementById("url");
 
-  async function fetchReelly(){
-    const qs = qsEl.value.trim();
-    const url = `${API_BASE}?${qs}`;
+  function getImage(item){
+    if(item.cover_image_url){
+      try{
+        const parsed = JSON.parse(item.cover_image_url);
+        if(parsed.url) return parsed.url;
+      }catch{}
+      if(item.cover_image_url.startsWith("http")) return item.cover_image_url;
+    }
+    return "https://dummyimage.com/800x500/e5e7eb/111827&text=No+Image";
+  }
 
-    statusEl.textContent = "…";
-    urlEl.textContent = url;
-    outEl.textContent = "Loading...";
+  async function loadProjects(){
+    grid.innerHTML="";
+    statusEl.textContent="جاري التحميل...";
+
+    const url = `${API_BASE}?per_page=50&page=1`;
 
     try{
-      const r = await fetch(url, {
-        method: "GET",
-        headers: {
+      const res = await fetch(url,{
+        headers:{
           "X-API-Key": API_KEY,
-          "accept": "application/json"
+          "accept":"application/json"
         }
       });
 
-      const text = await r.text();
-      statusEl.textContent = r.status;
+      const text = await res.text();
+      statusEl.textContent = `Status: ${res.status}`;
 
-      // حاول نعرض JSON مرتب، وإذا مو JSON اعرضه نص
-      try{
-        const data = JSON.parse(text);
-        outEl.textContent = JSON.stringify(data, null, 2);
-      }catch{
-        outEl.textContent = text;
+      let data={};
+      try{ data = JSON.parse(text); }catch{}
+
+      const items = data.items || [];
+
+      if(!items.length){
+        grid.innerHTML = `
+          <div class="empty">
+            لا توجد مشاريع راجعة من الـ API<br>
+            (items = [])
+          </div>
+        `;
+        return;
       }
 
+      items.forEach(item=>{
+        const card = document.createElement("div");
+        card.className="card";
+        card.innerHTML = `
+          <img src="${getImage(item)}" alt="">
+          <div class="body">
+            <div class="title">${item.name || "بدون اسم"}</div>
+            <div class="meta">المطور: ${item.developer || "-"}</div>
+            <div class="meta">السعر من: ${item.min_price || "-"}</div>
+            <div class="meta">المنطقة: ${item.region || "-"}</div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
     }catch(err){
-      statusEl.textContent = "Network error";
-      outEl.textContent = String(err);
+      statusEl.textContent="خطأ بالشبكة";
+      grid.innerHTML = `<div class="empty">${err}</div>`;
     }
   }
 
-  document.getElementById("go").addEventListener("click", fetchReelly);
-
-  document.getElementById("dubai").addEventListener("click", ()=>{
-    qsEl.value = "country=UAE&region=Dubai&search_query=Dubai&per_page=5&page=1";
-  });
-
-  document.getElementById("marina").addEventListener("click", ()=>{
-    qsEl.value = "country=UAE&region=Dubai&search_query=Marina&per_page=5&page=1";
-  });
-
-  document.getElementById("reset").addEventListener("click", ()=>{
-    qsEl.value = "country=UAE&region=Dubai&search_query=Dubai&per_page=5&page=1";
-    outEl.textContent = "اضغط Fetch…";
-    statusEl.textContent = "—";
-    urlEl.textContent = "—";
-  });
+  document.getElementById("load").addEventListener("click", loadProjects);
 </script>
 
 </body>
