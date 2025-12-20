@@ -1,48 +1,89 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>All Reelly Projects</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reelly Chat Bot</title>
 
   <style>
     body{
       margin:0;
       font-family:system-ui,-apple-system,Segoe UI,Tahoma;
       background:#f5f5f7;
+      display:flex;
+      justify-content:center;
       padding:20px;
     }
-    h1{margin-bottom:10px}
-    .top{
+    .chatbox{
+      width:100%;
+      max-width:900px;
+      height:85vh;
+      background:#fff;
+      border-radius:16px;
+      border:1px solid #e5e7eb;
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+      box-shadow:0 16px 40px rgba(0,0,0,.08);
+    }
+    .header{
+      padding:14px;
+      border-bottom:1px solid #e5e7eb;
+      font-weight:900;
+    }
+    .chat{
+      flex:1;
+      padding:14px;
+      overflow:auto;
+      background:#f9fafb;
+    }
+    .row{display:flex;margin-bottom:12px}
+    .bot{justify-content:flex-start}
+    .user{justify-content:flex-end}
+    .bubble{
+      max-width:75%;
+      padding:10px 14px;
+      border-radius:14px;
+      font-size:14px;
+      line-height:1.6;
+    }
+    .bot .bubble{background:#eef2ff}
+    .user .bubble{background:#ecfeff}
+
+    .composer{
+      border-top:1px solid #e5e7eb;
+      padding:12px;
       display:flex;
       gap:10px;
-      flex-wrap:wrap;
-      margin-bottom:20px;
+    }
+    input{
+      flex:1;
+      padding:12px;
+      border-radius:12px;
+      border:1px solid #d1d5db;
+      font-size:14px;
     }
     button{
-      padding:10px 14px;
-      border-radius:10px;
+      padding:12px 16px;
+      border-radius:12px;
       border:0;
       background:#2563eb;
       color:#fff;
-      font-weight:700;
+      font-weight:900;
       cursor:pointer;
     }
-    .status{
-      margin:10px 0;
-      font-weight:700;
-    }
-    .grid{
+
+    .cards{
       display:grid;
-      grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
-      gap:16px;
+      grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+      gap:12px;
+      margin-top:10px;
     }
     .card{
       background:#fff;
       border-radius:14px;
       border:1px solid #e5e7eb;
       overflow:hidden;
-      box-shadow:0 10px 25px rgba(15,23,42,.06);
     }
     .card img{
       width:100%;
@@ -50,113 +91,146 @@
       object-fit:cover;
       background:#e5e7eb;
     }
-    .body{
-      padding:12px;
-    }
-    .title{
-      font-weight:800;
-      margin-bottom:6px;
-    }
-    .meta{
-      font-size:13px;
-      color:#555;
-      margin-bottom:6px;
-    }
-    .empty{
-      padding:20px;
-      background:#fff;
-      border:1px dashed #ccc;
-      border-radius:14px;
-      text-align:center;
-      font-weight:700;
-    }
+    .card-body{padding:10px}
+    .title{font-weight:800}
+    .meta{font-size:12px;color:#555}
   </style>
 </head>
 
 <body>
 
-<h1>كل مشاريع Reelly</h1>
+<div class="chatbox">
+  <div class="header">🤖 Reelly Chat Bot</div>
 
-<div class="top">
-  <button id="load">تحميل المشاريع</button>
+  <div class="chat" id="chat"></div>
+
+  <div class="composer">
+    <input id="input" placeholder="اكتب طلبك... (مثال: 2 غرف بدبي بين 1 و 2 مليون)">
+    <button id="send">إرسال</button>
+  </div>
 </div>
 
-<div class="status" id="status">—</div>
-
-<div id="grid" class="grid"></div>
-
 <script>
-  const API_BASE = "https://search-listings-production.up.railway.app/v1/properties";
-  const API_KEY  = "reelly-80fd5f24-WLrF9bAxkGwYrUXFjrIyzNxRlzrB4kpH";
+const API_BASE = "https://search-listings-production.up.railway.app/v1/properties";
+const API_KEY  = "reelly-80fd5f24-WLrF9bAxkGwYrUXFjrIyzNxRlzrB4kpH";
 
-  const grid = document.getElementById("grid");
-  const statusEl = document.getElementById("status");
+const chat = document.getElementById("chat");
+const input = document.getElementById("input");
 
-  function getImage(item){
-    if(item.cover_image_url){
-      try{
-        const parsed = JSON.parse(item.cover_image_url);
-        if(parsed.url) return parsed.url;
-      }catch{}
-      if(item.cover_image_url.startsWith("http")) return item.cover_image_url;
-    }
-    return "https://dummyimage.com/800x500/e5e7eb/111827&text=No+Image";
-  }
+function bubble(text, who){
+  const r=document.createElement("div");
+  r.className="row "+who;
+  const b=document.createElement("div");
+  b.className="bubble";
+  b.textContent=text;
+  r.appendChild(b);
+  chat.appendChild(r);
+  chat.scrollTop=chat.scrollHeight;
+}
 
-  async function loadProjects(){
-    grid.innerHTML="";
-    statusEl.textContent="جاري التحميل...";
-
-    const url = `${API_BASE}?per_page=50&page=1`;
-
+function getImage(it){
+  if(it.cover_image_url){
     try{
-      const res = await fetch(url,{
-        headers:{
-          "X-API-Key": API_KEY,
-          "accept":"application/json"
-        }
-      });
+      const p=JSON.parse(it.cover_image_url);
+      if(p.url) return p.url;
+    }catch{}
+    if(it.cover_image_url.startsWith("http")) return it.cover_image_url;
+  }
+  return "https://dummyimage.com/800x500/e5e7eb/111827&text=No+Image";
+}
 
-      const text = await res.text();
-      statusEl.textContent = `Status: ${res.status}`;
+/* 🧠 فهم الطلب بشكل بسيط */
+function parsePrompt(text){
+  const t=text.toLowerCase();
+  const f={country:"UAE", region:"", search_query:"Dubai"};
 
-      let data={};
-      try{ data = JSON.parse(text); }catch{}
+  if(t.includes("marina")) f.search_query="Marina";
+  if(t.includes("downtown")) f.search_query="Downtown";
+  if(t.includes("dubai")) f.region="Dubai";
 
-      const items = data.items || [];
-
-      if(!items.length){
-        grid.innerHTML = `
-          <div class="empty">
-            لا توجد مشاريع راجعة من الـ API<br>
-            (items = [])
-          </div>
-        `;
-        return;
-      }
-
-      items.forEach(item=>{
-        const card = document.createElement("div");
-        card.className="card";
-        card.innerHTML = `
-          <img src="${getImage(item)}" alt="">
-          <div class="body">
-            <div class="title">${item.name || "بدون اسم"}</div>
-            <div class="meta">المطور: ${item.developer || "-"}</div>
-            <div class="meta">السعر من: ${item.min_price || "-"}</div>
-            <div class="meta">المنطقة: ${item.region || "-"}</div>
-          </div>
-        `;
-        grid.appendChild(card);
-      });
-
-    }catch(err){
-      statusEl.textContent="خطأ بالشبكة";
-      grid.innerHTML = `<div class="empty">${err}</div>`;
-    }
+  const price=t.match(/(\d+)\s*[-و]\s*(\d+)/);
+  if(price){
+    f.unit_price_from=price[1]*1000000;
+    f.unit_price_to=price[2]*1000000;
   }
 
-  document.getElementById("load").addEventListener("click", loadProjects);
+  const bed=t.match(/(\d)\s*غ/);
+  if(bed) f.unit_bedrooms=bed[1];
+
+  return f;
+}
+
+async function fetchProjects(filters){
+  const qs=new URLSearchParams({...filters,per_page:5,page:1}).toString();
+  const url=`${API_BASE}?${qs}`;
+
+  const r=await fetch(url,{
+    headers:{
+      "X-API-Key":API_KEY,
+      "accept":"application/json"
+    }
+  });
+
+  const data=await r.json();
+  return data.items||[];
+}
+
+async function send(){
+  const text=input.value.trim();
+  if(!text) return;
+  input.value="";
+
+  bubble(text,"user");
+
+  const filters=parsePrompt(text);
+
+  bubble(
+`فهمت طلبك:
+📍 ${filters.region||"Any"}
+🔍 ${filters.search_query}
+💰 ${filters.unit_price_from||"—"} → ${filters.unit_price_to||"—"}
+🛏️ ${filters.unit_bedrooms||"Any"}
+جاري البحث...`,"bot");
+
+  const items=await fetchProjects(filters);
+
+  if(!items.length){
+    bubble("❌ ما لقيت نتائج حالياً، جرّب توسّع البحث.","bot");
+    return;
+  }
+
+  const wrap=document.createElement("div");
+  wrap.className="row bot";
+  const b=document.createElement("div");
+  b.className="bubble";
+
+  const grid=document.createElement("div");
+  grid.className="cards";
+
+  items.forEach(it=>{
+    const c=document.createElement("div");
+    c.className="card";
+    c.innerHTML=`
+      <img src="${getImage(it)}">
+      <div class="card-body">
+        <div class="title">${it.name||"بدون اسم"}</div>
+        <div class="meta">${it.developer||""}</div>
+        <div class="meta">من ${it.min_price||"-"} ${it.price_currency||""}</div>
+      </div>
+    `;
+    grid.appendChild(c);
+  });
+
+  b.appendChild(grid);
+  wrap.appendChild(b);
+  chat.appendChild(wrap);
+  chat.scrollTop=chat.scrollHeight;
+}
+
+document.getElementById("send").onclick=send;
+input.addEventListener("keydown",e=>{if(e.key==="Enter")send();});
+
+bubble("أهلًا 👋 اكتب طلبك العقاري وأنا أجيب أفضل النتائج.","bot");
 </script>
 
 </body>
