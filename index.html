@@ -3,637 +3,837 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Reelly Chat Bot (Pro)</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <title>Reelly GPT-like Smart Chat (Auto Load + Index)</title>
 
   <style>
-    :root{
-      --bg:#f5f5f7;--panel:#fff;--stroke:#e5e7eb;--muted:#6b7280;--text:#111827;
-      --a:#2563eb;--a2:#0ea5e9;--bot:#eef2ff;--user:#ecfeff;--warn:#fff7ed;
-      --shadow:0 16px 40px rgba(15,23,42,.08);
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0; background:var(--bg); color:var(--text);
-      font-family:"Cairo",system-ui,-apple-system,Segoe UI,Tahoma;
-      display:flex; justify-content:center; padding:16px;
-    }
-    .app{
-      width:min(1040px,100%); height:min(92vh,940px);
-      background:var(--panel); border:1px solid var(--stroke);
-      border-radius:18px; overflow:hidden; box-shadow:var(--shadow);
-      display:flex; flex-direction:column;
-    }
-    .top{
-      padding:12px 14px; border-bottom:1px solid var(--stroke);
-      display:flex; justify-content:space-between; align-items:center; gap:10px;
-      background:linear-gradient(90deg,#fff,#f9fafb);
-    }
-    .brand{display:flex; gap:10px; align-items:center}
-    .pill{
-      width:34px; height:34px; border-radius:999px;
-      background:radial-gradient(circle at 30% 30%,var(--a2),var(--a));
-      color:#fff; display:grid; place-items:center; font-weight:900;
-    }
-    .brand .t1{font-weight:900}
-    .brand .t2{font-size:12px; color:var(--muted); font-weight:700}
-    .btn{
-      border:1px solid var(--stroke); background:#fff; border-radius:999px;
-      padding:8px 12px; cursor:pointer; font-weight:900; font-size:12px;
-    }
-    .btn.primary{
-      border:0; color:#fff;
-      background:linear-gradient(90deg,var(--a),var(--a2));
-      box-shadow:0 10px 22px rgba(37,99,235,.22);
-    }
-    .chat{
-      flex:1; overflow:auto; padding:14px;
-      background:radial-gradient(circle at top, rgba(209,213,219,.55) 0, rgba(245,245,247,1) 60%);
-    }
-    .row{display:flex; margin:10px 0}
-    .row.bot{justify-content:flex-start}
-    .row.user{justify-content:flex-end}
-    .bubble{
-      max-width:min(78%,820px);
-      border:1px solid var(--stroke);
-      border-radius:16px; padding:10px 12px;
-      font-size:14px; line-height:1.7;
-      box-shadow:0 8px 18px rgba(15,23,42,.05);
-      white-space:pre-wrap;
-    }
-    .row.bot .bubble{background:var(--bot); border-top-right-radius:6px}
-    .row.user .bubble{background:var(--user); border-top-left-radius:6px}
-    .bubble.warn{background:var(--warn)}
-    .bubble.debug{background:#0b1220;color:#e5e7eb;border-color:#111827;font-size:12px}
-    .composer{
-      border-top:1px solid var(--stroke);
-      padding:12px; display:flex; gap:10px; background:#fff;
-    }
-    input{
-      flex:1; border:1px solid #d1d5db; border-radius:12px;
-      padding:12px; font-size:14px; outline:none;
-    }
-    input:focus{border-color:#93c5fd; box-shadow:0 0 0 4px rgba(59,130,246,.12);}
-    .send{
-      border:0; border-radius:12px; padding:12px 16px;
-      font-weight:900; cursor:pointer; color:#fff;
-      background:linear-gradient(90deg,var(--a),var(--a2));
-    }
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Tahoma;background:#f5f5f7;padding:18px;color:#111827;}
+    .wrap{max-width:1100px;margin:0 auto;}
+    h1{margin:0 0 12px 0;font-size:20px}
+    .status{margin:8px 0 14px;font-weight:800;line-height:1.6;}
+    .muted{color:#6b7280;font-weight:700}
+    .chatBox{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:12px;box-shadow:0 10px 25px rgba(15,23,42,.06);}
+    .messages{display:flex;flex-direction:column;gap:10px;max-height:320px;overflow:auto;padding:8px;border-radius:14px;background:#f9fafb;border:1px solid #eef2f7;}
+    .msgRow{display:flex;gap:8px;align-items:flex-end;}
+    .bubble{max-width:85%;padding:10px 12px;border-radius:14px;border:1px solid #e5e7eb;background:#fff;line-height:1.7;font-size:14px;white-space:pre-wrap;word-break:break-word;}
+    .me{justify-content:flex-start}
+    .me .bubble{background:#2563eb;color:#fff;border-color:#2563eb;border-bottom-right-radius:4px;}
+    .bot{justify-content:flex-start}
+    .bot .bubble{background:#fff;border-bottom-left-radius:4px;}
+    .avatar{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;background:#111827;color:#fff;flex:0 0 auto;}
+    .avatar.meA{background:#2563eb}
+    .composer{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap;}
+    input{flex:1;min-width:260px;padding:12px 12px;border-radius:12px;border:1px solid #e5e7eb;font-size:15px;outline:none;background:#fff;}
+    button{padding:10px 14px;border-radius:12px;border:0;background:#2563eb;color:#fff;font-weight:800;cursor:pointer;}
+    button:disabled{opacity:.6;cursor:not-allowed}
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+    .chip{border:1px solid #e5e7eb;background:#fff;padding:8px 10px;border-radius:999px;cursor:pointer;font-weight:800;font-size:13px;color:#111827;}
+    .chip:hover{box-shadow:0 6px 14px rgba(15,23,42,.08)}
+    .suggestions{margin-top:10px;font-size:13px;color:#374151;line-height:1.7;}
 
-    /* Cards inside bot bubble */
-    .cards{
-      display:grid;
-      grid-template-columns:repeat(auto-fill, minmax(230px,1fr));
-      gap:12px;
-      margin-top:10px;
+    /* Results History */
+    .history{margin-top:14px;display:flex;flex-direction:column;gap:14px;}
+    .section{
+      background:#fff;border:1px solid #e5e7eb;border-radius:16px;
+      box-shadow:0 10px 25px rgba(15,23,42,.06); overflow:hidden;
     }
-    .card{
-      background:#fff; border:1px solid var(--stroke);
-      border-radius:14px; overflow:hidden;
-      box-shadow:0 10px 25px rgba(15,23,42,.06);
+    .sectionHead{
+      padding:10px 12px;border-bottom:1px solid #eef2f7;
+      display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;
+      background:#fafafa;
     }
-    .card img{width:100%; aspect-ratio:16/10; object-fit:cover; background:#e5e7eb;}
-    .cb{padding:10px 12px 12px}
-    .ct{font-weight:900; margin-bottom:6px; font-size:14px}
-    .meta{display:flex; flex-wrap:wrap; gap:6px; color:#374151; font-size:12px}
-    .tag{background:#f3f4f6;border:1px solid var(--stroke);padding:3px 8px;border-radius:999px;font-weight:800}
-    .link{
-      display:block; margin-top:10px; text-align:center;
-      border:1px solid #d1d5db; background:#f9fafb;
-      border-radius:999px; padding:8px 10px;
-      text-decoration:none; color:#2563eb; font-weight:900; font-size:13px;
-    }
-
-    /* Quick reply buttons */
-    .quick{
-      display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;
-    }
-    .qbtn{
-      border:1px solid #d1d5db; background:#fff; color:#111827;
-      border-radius:999px; padding:8px 10px; cursor:pointer;
-      font-weight:900; font-size:12px;
-      box-shadow:0 1px 2px rgba(15,23,42,.04);
-    }
+    .sectionHead .q{font-weight:900}
+    .sectionHead .sub{color:#6b7280;font-weight:800;font-size:12px}
+    .grid{padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
+    .card{background:#fff;border-radius:14px;border:1px solid #e5e7eb;overflow:hidden;box-shadow:0 10px 25px rgba(15,23,42,.06);}
+    .card img{width:100%;aspect-ratio:16/10;object-fit:cover;background:#e5e7eb;}
+    .body{padding:12px}
+    .title{font-weight:900;margin-bottom:6px}
+    .meta{font-size:13px;color:#555;margin-bottom:6px}
+    .why{margin-top:10px;font-size:12px;color:#374151;background:#f3f4f6;padding:8px 10px;border-radius:10px;line-height:1.6;border:1px solid #e5e7eb;}
+    .empty{padding:20px;background:#fff;border:1px dashed #ccc;border-radius:14px;text-align:center;font-weight:900;}
   </style>
 </head>
 
 <body>
-<div class="app">
-  <div class="top">
-    <div class="brand">
-      <div class="pill">RB</div>
-      <div>
-        <div class="t1">Reelly Chat Bot</div>
-        <div class="t2">Fallback ذكي + أسئلة توضيحية + اقتراحات</div>
-      </div>
-    </div>
-    <div style="display:flex; gap:8px; align-items:center;">
-      <button class="btn" id="resetBtn">إعادة</button>
-      <button class="btn primary" id="exampleBtn">مثال</button>
-    </div>
+<div class="wrap">
+
+  <h1>شات بوت ذكي (GPT-like) لمشاريع Reelly</h1>
+
+  <div class="status" id="status">
+    <span class="muted">مرحباً 👋</span> اكتب طلبك بعد لحظات…
   </div>
 
-  <div class="chat" id="chat"></div>
+  <div class="chatBox">
+    <div class="messages" id="messages"></div>
 
-  <div class="composer">
-    <input id="input" placeholder="مثال: شقة غرفتين وصالون بدبي مارينا بين 1 و 2 مليون">
-    <button class="send" id="sendBtn">إرسال</button>
+    <div class="composer">
+      <input id="q" type="text" placeholder="مثال: غرفتين دبي مارينا تحت 2 مليون" disabled />
+      <button id="ask" disabled>ابحث</button>
+    </div>
+
+    <div class="chips" id="chips"></div>
+    <div class="suggestions" id="suggestions"></div>
   </div>
+
+  <div id="history" class="history"></div>
+
 </div>
 
 <script>
-/* =========================
-   ✅ CONFIG
-========================= */
-const API_BASE = "https://search-listings-production.up.railway.app/v1/properties";
-const API_KEY  = "reelly-80fd5f24-WLrF9bAxkGwYrUXFjrIyzNxRlzrB4kpH"; // 🔴 ضع مفتاحك
-const API_KEY_HEADER = "X-API-Key";
+  // =========================
+  // 🔌 API
+  // =========================
+  const API_BASE = "https://search-listings-production.up.railway.app/v1/properties";
+  const API_KEY  = "reelly-80fd5f24-WLrF9bAxkGwYrUXFjrIyzNxRlzrB4kpH";
 
-/* Toggle debug bubbles (true/false) */
-const DEBUG_ON = false;
-
-/* =========================
-   UI
-========================= */
-const chat = document.getElementById("chat");
-const input = document.getElementById("input");
-
-function scrollBottom(){ chat.scrollTop = chat.scrollHeight; }
-
-function bubble(text, who, cls=""){
-  const row = document.createElement("div");
-  row.className = "row " + who;
-  const b = document.createElement("div");
-  b.className = "bubble" + (cls ? (" " + cls) : "");
-  b.textContent = text;
-  row.appendChild(b);
-  chat.appendChild(row);
-  scrollBottom();
-  return b;
-}
-const bot  = (t)=>bubble(t,"bot");
-const user = (t)=>bubble(t,"user");
-const warn = (t)=>bubble(t,"bot","warn");
-const dbg  = (t)=>{ if(DEBUG_ON) bubble(t,"bot","debug"); };
-
-function tryParseJSON(s){ try{ return JSON.parse(s);}catch{ return null; } }
-function isImg(u){ return typeof u==="string" && /^https?:\/\//.test(u); }
-function getImage(it){
-  if(typeof it.cover_image_url === "string"){
-    const p = tryParseJSON(it.cover_image_url);
-    if(p?.url) return p.url;
-    if(isImg(it.cover_image_url)) return it.cover_image_url;
-  }
-  return "https://dummyimage.com/900x506/e5e7eb/111827&text=No+Image";
-}
-function getCoords(it){
-  if(typeof it.coordinates==="string"){
-    const parts = it.coordinates.split(",").map(v=>Number(v.trim()));
-    if(parts.length>=2 && parts.every(Number.isFinite)) return {lat:parts[0], lng:parts[1]};
-  }
-  return null;
-}
-
-function tagEl(text){
-  const s = document.createElement("span");
-  s.className = "tag";
-  s.textContent = text;
-  return s;
-}
-
-function renderCardsInBot(items, titleText="أفضل 5 نتائج 👇"){
-  bot(titleText);
-
-  const row = document.createElement("div");
-  row.className = "row bot";
-
-  const b = document.createElement("div");
-  b.className = "bubble";
-
-  const grid = document.createElement("div");
-  grid.className = "cards";
-
-  items.slice(0,5).forEach((it, idx)=>{
-    const card = document.createElement("div");
-    card.className = "card";
-
-    const img = document.createElement("img");
-    img.src = getImage(it);
-    img.alt = "project";
-    card.appendChild(img);
-
-    const cb = document.createElement("div");
-    cb.className = "cb";
-
-    const ct = document.createElement("div");
-    ct.className = "ct";
-    ct.textContent = `${idx+1}) ${it.name || "بدون اسم"}`;
-    cb.appendChild(ct);
-
-    const meta = document.createElement("div");
-    meta.className = "meta";
-    meta.appendChild(tagEl(it.developer || "—"));
-
-    const beds = it.unit_bedrooms || "";
-    if(beds) meta.appendChild(tagEl("غرف: " + beds));
-
-    const price = it.min_price || it.price || "";
-    const curr  = it.price_currency || "";
-    if(price) meta.appendChild(tagEl(`من ${price} ${curr}`));
-
-    cb.appendChild(meta);
-
-    const c = getCoords(it);
-    const a = document.createElement("a");
-    a.className = "link";
-    if(c){
-      a.href = `https://maps.google.com/?q=${c.lat},${c.lng}`;
-      a.target="_blank";
-      a.rel="noopener";
-      a.textContent = "فتح على Google Maps";
-    }else{
-      a.href="javascript:void(0)";
-      a.style.opacity=".6";
-      a.style.pointerEvents="none";
-      a.textContent = "لا توجد إحداثيات";
+  // =========================
+  // 🧠 Memory (Always Learn)
+  // =========================
+  const MEM_KEY = "reelly_gpt_memory_indexed_v3";
+  function loadMemory(){
+    try{
+      const raw = localStorage.getItem(MEM_KEY);
+      if(!raw) return {queryCounts:{}, areaCounts:{}, devCounts:{}, lastQueries:[]};
+      const m = JSON.parse(raw);
+      return {
+        queryCounts: m.queryCounts || {},
+        areaCounts: m.areaCounts || {},
+        devCounts: m.devCounts || {},
+        lastQueries: Array.isArray(m.lastQueries) ? m.lastQueries : []
+      };
+    }catch{
+      return {queryCounts:{}, areaCounts:{}, devCounts:{}, lastQueries:[]};
     }
-    cb.appendChild(a);
+  }
+  function saveMemory(mem){ localStorage.setItem(MEM_KEY, JSON.stringify(mem)); }
+  let MEMORY = loadMemory();
 
-    card.appendChild(cb);
-    grid.appendChild(card);
-  });
+  function bumpCount(map, key, inc=1){
+    if(!key) return;
+    map[key] = (map[key] || 0) + inc;
+  }
+  function pushLastQuery(q){
+    q = String(q || "").trim();
+    if(!q) return;
+    MEMORY.lastQueries = MEMORY.lastQueries.filter(x => x !== q);
+    MEMORY.lastQueries.unshift(q);
+    MEMORY.lastQueries = MEMORY.lastQueries.slice(0, 10);
+  }
+  function topKeysByCount(obj, limit=4){
+    const entries = Object.entries(obj || {});
+    entries.sort((a,b)=> (b[1]||0)-(a[1]||0));
+    return entries.slice(0, limit).map(([k])=>k);
+  }
 
-  b.appendChild(grid);
-  row.appendChild(b);
-  chat.appendChild(row);
-  scrollBottom();
-}
-
-function addQuickReplies(title, options){
-  const row = document.createElement("div");
-  row.className="row bot";
-  const b = document.createElement("div");
-  b.className="bubble";
-
-  const t = document.createElement("div");
-  t.textContent = title;
-  b.appendChild(t);
-
-  const wrap = document.createElement("div");
-  wrap.className="quick";
-
-  options.forEach(opt=>{
-    const btn = document.createElement("button");
-    btn.className="qbtn";
-    btn.type="button";
-    btn.textContent = opt.label;
-    btn.addEventListener("click", ()=>{
-      input.value = opt.value;
-      input.focus();
-    });
-    wrap.appendChild(btn);
-  });
-
-  b.appendChild(wrap);
-  row.appendChild(b);
-  chat.appendChild(row);
-  scrollBottom();
-}
-
-/* =========================
-   🧠 Prompt Understanding (Improved)
-========================= */
-function normalizeArabicDigitsToLatin(str){
-  const map = { "٠":"0","١":"1","٢":"2","٣":"3","٤":"4","٥":"5","٦":"6","٧":"7","٨":"8","٩":"9" };
-  return str.replace(/[٠-٩]/g, d => map[d] || d);
-}
-
-function parsePrompt(text){
-  let t = normalizeArabicDigitsToLatin(text)
-    .toLowerCase()
-    .replace(/،|,/g," ")
-    .replace(/[-–]/g," ")
-    .replace(/\s+/g," ")
-    .trim();
-
-  const f = {
-    country:"UAE",
-    region:"",
-    search_query:"",
-    unit_bedrooms:"",
-    unit_price_from:"",
-    unit_price_to:"",
-    post_handover:""
+  // =========================
+  // 🧩 Aliases
+  // =========================
+  const ALIASES = {
+    areas: {
+      "الخليج التجاري": ["business bay","بزنس باي","الخليج التجاري","businessbay"],
+      "دبي مارينا": ["dubai marina","مارينا","دبي مارينا","marina"],
+      "داون تاون": ["downtown","داون تاون","وسط دبي","downtown dubai"],
+      "قرية جميرا الدائرية": ["jvc","jumeirah village circle","قرية جميرا","ج ف سي","جي في سي"],
+      "قرية جميرا المثلثة": ["jvt","jumeirah village triangle","جي في تي"],
+      "نخلة جميرا": ["palm jumeirah","نخلة جميرا","palm"],
+      "المدينة العالمية": ["international city","المدينة العالمية"],
+      "دبي هيلز": ["dubai hills","دبي هيلز","hills"],
+    },
+    developers: {
+      "اعمار": ["emaar","اعمار","إعمار"],
+      "داماك": ["damac","داماك"],
+      "نخيل": ["nakheel","نخيل"],
+      "مراس": ["meraas","مراس"],
+      "عزيزي": ["azizi","عزيزي"],
+      "دانوب": ["danube","دانوب"],
+      "شوبا": ["sobha","شوبا"],
+      "ماج": ["mag","ماج"],
+    }
   };
 
-  // Region
-  if(/أبو ?ظبي|abu ?dhabi/.test(t)) f.region="Abu Dhabi";
-  else if(/الشارقة|sharjah/.test(t)) f.region="Sharjah";
-  else if(/دبي|dubai/.test(t)) f.region="Dubai";
+  // =========================
+  // 🧱 DOM
+  // =========================
+  const statusEl = document.getElementById("status");
+  const qEl = document.getElementById("q");
+  const askBtn = document.getElementById("ask");
+  const messagesEl = document.getElementById("messages");
+  const chipsEl = document.getElementById("chips");
+  const suggestionsEl = document.getElementById("suggestions");
+  const historyEl = document.getElementById("history");
 
-  // Popular areas / query
-  if(/مارينا|marina/.test(t)) f.search_query="Dubai Marina";
-  else if(/داون ?تاون|downtown/.test(t)) f.search_query="Downtown Dubai";
-  else if(/نخلة|palm/.test(t)) f.search_query="Palm Jumeirah";
-  else if(/بزنس باي|business bay/.test(t)) f.search_query="Business Bay";
-  else if(/jvc|قرية جميرا|jumeirah village circle/.test(t)) f.search_query="Jumeirah Village Circle";
-  else f.search_query = f.region || "Dubai";
+  // =========================
+  // 🗃️ Data cache + INDEX
+  // =========================
+  let ALL_PROJECTS = [];
+  let INDEX = [];
+  let READY = false;
 
-  // Bedrooms: studio
-  if(/استوديو|studio/.test(t)) f.unit_bedrooms="studio";
+  // =========================
+  // 🧠 Conversation context (links queries)
+  // =========================
+  let LAST_CONTEXT = null; // { filters, query }
 
-  // Bedrooms: digits + "غرف/bed"
-  const b1 = t.match(/(\d+)\s*(?:غرف|غرفة|bed|beds|br)/);
-  if(b1) f.unit_bedrooms = b1[1];
-
-  // Bedrooms: "غرفتين" "ثلاث غرف" (basic)
-  if(!f.unit_bedrooms && /غرفتين|غرفتان/.test(t)) f.unit_bedrooms="2";
-  if(!f.unit_bedrooms && /ثلاث\s*غرف|٣\s*غرف|3\s*غرف/.test(t)) f.unit_bedrooms="3";
-
-  // Post handover
-  if(/post handover|بوست|بعد التسليم/.test(t)) f.post_handover="true";
-  if(/خلال الإنشاء|عادي|بدون بوست/.test(t)) f.post_handover="false";
-
-  // Price:
-  // "بين 1 و 2 مليون" OR "1-2 مليون" OR "1 إلى 2"
-  const between = t.match(/(?:بين)\s*(\d+(?:\.\d+)?)\s*(?:و|الى|إلى)\s*(\d+(?:\.\d+)?)/);
-  const dash = t.match(/(\d+(?:\.\d+)?)\s*(?:\s)\s*(\d+(?:\.\d+)?)/); // fallback weak
-  const range = t.match(/(\d+(?:\.\d+)?)\s*(?:-|–|\s)\s*(\d+(?:\.\d+)?)(?:\s*m| مليون)?/);
-
-  function toAED(n){
-    // if small -> assume million
-    const x = Number(n);
-    if(!Number.isFinite(x)) return "";
-    return String(x < 50 ? Math.round(x*1_000_000) : Math.round(x));
+  // =========================
+  // Helpers
+  // =========================
+  function escapeHtml(str){
+    return String(str ?? "")
+      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;").replaceAll("'","&#039;");
   }
 
-  if(between){
-    f.unit_price_from = toAED(between[1]);
-    f.unit_price_to   = toAED(between[2]);
-  } else if(range){
-    f.unit_price_from = toAED(range[1]);
-    f.unit_price_to   = toAED(range[2]);
-  } else {
-    const under = t.match(/(?:تحت|اقل من|أقل من|under)\s*(\d+(?:\.\d+)?)(?:\s*m| مليون)?/);
-    const over  = t.match(/(?:فوق|اكثر من|أكثر من|over)\s*(\d+(?:\.\d+)?)(?:\s*m| مليون)?/);
-    if(under) f.unit_price_to = toAED(under[1]);
-    if(over)  f.unit_price_from = toAED(over[1]);
+  function normalizeArabic(s){
+    return String(s || "")
+      .toLowerCase()
+      .replaceAll("أ","ا").replaceAll("إ","ا").replaceAll("آ","ا")
+      .replaceAll("ى","ي").replaceAll("ة","ه")
+      .replaceAll("ؤ","و").replaceAll("ئ","ي")
+      .replaceAll(/[\u064B-\u065F]/g, "")
+      .replaceAll(/[^\p{L}\p{N}\s.]/gu, " ")
+      .replaceAll(/\s+/g, " ")
+      .trim();
   }
 
-  // If user said "شقة" but no area, keep Dubai as query
-  if(!f.search_query) f.search_query = f.region || "Dubai";
+  function normalizeItems(data){
+    if(Array.isArray(data)) return data;
+    if(Array.isArray(data?.items)) return data.items;
+    if(Array.isArray(data?.data)) return data.data;
+    if(Array.isArray(data?.results)) return data.results;
+    if(Array.isArray(data?.properties)) return data.properties;
+    return [];
+  }
 
-  return f;
-}
-
-/* =========================
-   ✅ API (simple GET + header)
-========================= */
-function buildParams(obj){
-  const p = new URLSearchParams();
-  Object.entries(obj).forEach(([k,v])=>{
-    if(v===undefined || v===null) return;
-    const s = String(v).trim();
-    if(s==="") return;
-    p.append(k,s);
-  });
-  return p.toString();
-}
-
-async function fetchProjects(filters){
-  const payload = {...filters, per_page: 5, page: 1};
-  const url = `${API_BASE}?${buildParams(payload)}`;
-
-  const r = await fetch(url, {
-    method: "GET",
-    headers: {
-      [API_KEY_HEADER]: API_KEY,
-      "accept": "application/json"
+  function getImage(item){
+    if(item?.cover_image_url){
+      try{
+        const parsed = JSON.parse(item.cover_image_url);
+        if(parsed?.url) return parsed.url;
+      }catch{}
+      if(String(item.cover_image_url).startsWith("http")) return item.cover_image_url;
     }
-  });
-
-  const text = await r.text();
-  let data = {};
-  try{ data = JSON.parse(text); }catch{}
-
-  if(!r.ok){
-    return {ok:false, status:r.status, url, raw:data};
+    return "https://dummyimage.com/800x500/e5e7eb/111827&text=No+Image";
   }
-  const items = data.items || data.data || data.results || [];
-  return {ok:true, status:r.status, url, items};
-}
 
-/* =========================
-   🧠 Smart Fallback Strategy
-   - توسّع بشكل منطقي
-========================= */
-function clone(x){ return JSON.parse(JSON.stringify(x)); }
-
-function widenPrice(filters, factorLow=0.8, factorHigh=1.25){
-  const f = clone(filters);
-  const from = Number(f.unit_price_from || "");
-  const to   = Number(f.unit_price_to || "");
-  if(Number.isFinite(from) && Number.isFinite(to) && from>0 && to>0){
-    f.unit_price_from = String(Math.max(0, Math.round(from*factorLow)));
-    f.unit_price_to   = String(Math.round(to*factorHigh));
-  } else if(Number.isFinite(to) && to>0 && !from){
-    f.unit_price_to = String(Math.round(to*factorHigh));
-  } else if(Number.isFinite(from) && from>0 && !to){
-    f.unit_price_from = String(Math.max(0, Math.round(from*factorLow)));
+  function getPriceNumber(item){
+    const p = item?.min_price ?? item?.starting_price ?? item?.price_from ?? item?.price;
+    if(p == null) return null;
+    const pn = Number(String(p).replaceAll(",",""));
+    return Number.isFinite(pn) ? pn : null;
   }
-  return f;
-}
 
-function broadenBedrooms(filters){
-  // إذا طالب 2 غرف، نجرب 1..3 / إذا 3 نجرب 2..4
-  const f = clone(filters);
-  const b = f.unit_bedrooms;
-  if(!b || b==="studio") return f;
+  function getBedsNumber(item){
+    const b = item?.bedrooms ?? item?.min_bedrooms ?? item?.beds ?? item?.min_beds;
+    if(b == null) return null;
+    const bn = Number(String(b).replaceAll(",",""));
+    return Number.isFinite(bn) ? bn : null;
+  }
 
-  // Reelly غالبًا يدعم قيمة واحدة، لذلك بنعمل محاولة منفصلة لكل قيمة
-  return f;
-}
+  function itemTextForIndex(item){
+    return normalizeArabic([
+      item?.name, item?.title,
+      item?.developer, item?.developer_name,
+      item?.region, item?.area, item?.location,
+      item?.city, item?.community, item?.district,
+      item?.type
+    ].filter(Boolean).join(" "));
+  }
 
-function removeTightFilters(filters, opts){
-  const f = clone(filters);
-  if(opts.dropPostHandover) f.post_handover = "";
-  if(opts.dropBedrooms) f.unit_bedrooms = "";
-  if(opts.dropPrice) { f.unit_price_from=""; f.unit_price_to=""; }
-  if(opts.broadenArea) f.search_query = f.region || "Dubai";
-  if(opts.superBroad) { f.region=""; f.search_query="Dubai"; }
-  return f;
-}
+  function tokenizeText(text){
+    const stop = new Set([
+      "في","بال","بالـ","من","الى","و","او","اقل","تحت","اكثر","فوق","سعر",
+      "غرف","غرفة","شقه","شقة","apartment","villa","تاونهاوس","تاون","المطور","developer"
+    ]);
+    return text.split(" ").filter(Boolean).filter(w => w.length >= 2 && !stop.has(w));
+  }
 
-async function searchWithFallback(original){
-  const attempts = [];
+  function buildIndex(items){
+    INDEX = items.map(it=>{
+      const text = itemTextForIndex(it);
+      const words = new Set(tokenizeText(text));
+      const id = it?.id ?? it?._id ?? it?.uuid ?? null;
+      return {
+        id: id != null ? String(id) : null,
+        item: it,
+        text,
+        words,
+        price: getPriceNumber(it),
+        beds: getBedsNumber(it)
+      };
+    });
+  }
 
-  // A0: exact
-  attempts.push({label:"A0: Exact", filters: clone(original)});
+  // =========================
+  // Chat UI
+  // =========================
+  function addMsg(role, text){
+    const row = document.createElement("div");
+    row.className = "msgRow " + (role === "me" ? "me" : "bot");
 
-  // A1: drop post handover
-  attempts.push({label:"A1: Drop post_handover", filters: removeTightFilters(original,{dropPostHandover:true})});
+    const avatar = document.createElement("div");
+    avatar.className = "avatar " + (role === "me" ? "meA" : "");
+    avatar.textContent = role === "me" ? "أ" : "🤖";
 
-  // A2: widen price
-  attempts.push({label:"A2: Widen price", filters: widenPrice(removeTightFilters(original,{dropPostHandover:true}), 0.8, 1.25)});
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.textContent = text;
 
-  // A3: broaden area query (Dubai instead of specific area)
-  attempts.push({label:"A3: Broaden area", filters: removeTightFilters(original,{dropPostHandover:true,broadenArea:true})});
+    if(role === "me"){ row.appendChild(bubble); row.appendChild(avatar); }
+    else { row.appendChild(avatar); row.appendChild(bubble); }
 
-  // A4: drop bedrooms
-  attempts.push({label:"A4: Drop bedrooms", filters: removeTightFilters(original,{dropPostHandover:true,broadenArea:true,dropBedrooms:true})});
+    messagesEl.appendChild(row);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
 
-  // A5: drop price
-  attempts.push({label:"A5: Drop price", filters: removeTightFilters(original,{dropPostHandover:true,broadenArea:true,dropBedrooms:true,dropPrice:true})});
+  // =========================
+  // Seeded shuffle
+  // =========================
+  function hashString(str){
+    str = String(str || "");
+    let h = 2166136261;
+    for(let i=0;i<str.length;i++){
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  }
 
-  // A6: super broad
-  attempts.push({label:"A6: Super broad", filters: removeTightFilters(original,{superBroad:true,dropPrice:true,dropBedrooms:true,dropPostHandover:true})});
+  function seededShuffle(arr, seed){
+    let a = arr.slice();
+    let s = seed >>> 0;
+    function rnd(){
+      s = (Math.imul(1664525, s) + 1013904223) >>> 0;
+      return s / 4294967296;
+    }
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(rnd() * (i+1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
 
-  for(let i=0;i<attempts.length;i++){
-    const att = attempts[i];
-    bot(`🔎 محاولة ${i+1}/${attempts.length}… (${att.label})`);
+  // =========================
+  // NLP
+  // =========================
+  function levenshtein(a,b){
+    a = a || ""; b = b || "";
+    const m=a.length,n=b.length;
+    const dp = Array.from({length:m+1},()=>Array(n+1).fill(0));
+    for(let i=0;i<=m;i++) dp[i][0]=i;
+    for(let j=0;j<=n;j++) dp[0][j]=j;
+    for(let i=1;i<=m;i++){
+      for(let j=1;j<=n;j++){
+        const c = a[i-1]===b[j-1]?0:1;
+        dp[i][j]=Math.min(dp[i-1][j]+1, dp[i][j-1]+1, dp[i-1][j-1]+c);
+      }
+    }
+    return dp[m][n];
+  }
 
-    dbg("FILTERS:\n"+JSON.stringify(att.filters,null,2));
+  function fuzzyTokenMatch(wordsSet, token){
+    if(wordsSet.has(token)) return true;
+    if(token.length < 4) return false;
+    for(const w of wordsSet){
+      if(Math.abs(w.length - token.length) > 3) continue;
+      if(levenshtein(w, token) <= 1) return true;
+    }
+    return false;
+  }
 
-    const res = await fetchProjects(att.filters);
+  function moneyToNumber(numStr, unit){
+    const n = Number(String(numStr).replaceAll(",",""));
+    if(!Number.isFinite(n)) return null;
+    const u = (unit || "").toLowerCase();
+    if(u.includes("مليون") || u === "m") return Math.round(n * 1_000_000);
+    if(u.includes("الف") || u === "k") return Math.round(n * 1_000);
+    return Math.round(n);
+  }
 
-    if(!res.ok){
-      dbg(`HTTP ${res.status}\n${res.url}`);
-      // إذا مصادقة أو منع، خروجة مباشرة
-      if(res.status === 401 || res.status === 403) return {ok:false, fatal:true, reason:"AUTH", last:res};
-      continue;
+  function parseMoneySmart(q){
+    const t = normalizeArabic(q);
+
+    let between = t.match(/بين\s+([\d.]+)\s*(مليون|m|الف|k)?\s+و\s+([\d.]+)\s*(مليون|m|الف|k)?/);
+    if(between){
+      const a = moneyToNumber(between[1], between[2]);
+      const b = moneyToNumber(between[3], between[4]);
+      if(a && b) return {min: Math.min(a,b), max: Math.max(a,b)};
     }
 
-    dbg(`OK 200\ncount: ${res.items.length}\n${res.url}`);
+    let fromTo = t.match(/من\s+([\d.]+)\s*(مليون|m|الف|k)?\s+(الى|ل)\s+([\d.]+)\s*(مليون|m|الف|k)?/);
+    if(fromTo){
+      const a = moneyToNumber(fromTo[1], fromTo[2]);
+      const b = moneyToNumber(fromTo[4], fromTo[5]);
+      if(a && b) return {min: Math.min(a,b), max: Math.max(a,b)};
+    }
 
-    if(res.items.length){
-      return {ok:true, items: res.items, usedLabel: att.label, usedFilters: att.filters};
+    if(t.includes("اقل") || t.includes("تحت") || t.includes("ماكس") || t.includes("حد")){
+      const m = t.match(/([\d.]+)\s*(مليون|m|الف|k)?/);
+      if(m){
+        const v = moneyToNumber(m[1], m[2]);
+        if(v) return {min:null, max:v};
+      }
+    }
+
+    if(t.includes("اكثر") || t.includes("فوق") || t.includes("ابتداء") || t.includes("مينيمم")){
+      const m = t.match(/([\d.]+)\s*(مليون|m|الف|k)?/);
+      if(m){
+        const v = moneyToNumber(m[1], m[2]);
+        if(v) return {min:v, max:null};
+      }
+    }
+
+    return {min:null, max:null};
+  }
+
+  function parseBedroomsSmart(q){
+    const t = normalizeArabic(q);
+    if(t.includes("ستوديو") || t.includes("استوديو") || t.includes("studio")) return 0;
+    if(t.includes("غرفتين")) return 2;
+    if(t.includes("ثلاث")) return 3;
+    if(t.includes("اربع") || t.includes("اربعه")) return 4;
+    if(t.includes("خمس")) return 5;
+
+    const m = t.match(/(\d+)\s*(غرف|غرفة|bed|br)/i);
+    if(m) return Number(m[1]);
+
+    const m2 = t.match(/(\d+)\s*bhk/i);
+    if(m2) return Number(m2[1]);
+
+    return null;
+  }
+
+  function parseType(q){
+    const t = normalizeArabic(q);
+    const types = [
+      {key:"apartment", words:["شقه","شقة","apartment","apt"]},
+      {key:"villa", words:["فيلا","villa"]},
+      {key:"townhouse", words:["تاونهاوس","تاون","townhouse"]},
+      {key:"penthouse", words:["بنتهاوس","penthouse"]},
+      {key:"duplex", words:["دوبلكس","duplex"]},
+    ];
+    for(const tp of types){
+      if(tp.words.some(w => t.includes(normalizeArabic(w)))) return tp.key;
+    }
+    return null;
+  }
+
+  function extractAllAliases(q, dict){
+    const t = normalizeArabic(q);
+    const found = [];
+    for(const canonical in dict){
+      const arr = dict[canonical];
+      for(const w of arr){
+        if(t.includes(normalizeArabic(w))){
+          found.push(canonical);
+          break;
+        }
+      }
+    }
+    return [...new Set(found)];
+  }
+
+  function tokenizeQuery(q){ return tokenizeText(normalizeArabic(q)); }
+
+  function humanizeFilters(f){
+    const parts = [];
+    if(f.areas?.length) parts.push(`المنطقة: ${f.areas.join(" أو ")}`);
+    if(f.developers?.length) parts.push(`المطور: ${f.developers.join(" أو ")}`);
+    if(f.beds != null) parts.push(`غرف: ${f.beds===0?"ستوديو":f.beds}`);
+    if(f.money?.min != null) parts.push(`سعر من: ${f.money.min.toLocaleString()}`);
+    if(f.money?.max != null) parts.push(`سعر إلى: ${f.money.max.toLocaleString()}`);
+    if(f.type) parts.push(`نوع: ${f.type}`);
+    if(f.tokens?.length) parts.push(`كلمات: ${f.tokens.join("، ")}`);
+    return parts;
+  }
+
+  // =========================
+  // ✅ Merge context (smart linking)
+  // =========================
+  function mergeWithContext(currentFilters, lastFilters){
+    if(!lastFilters) return currentFilters;
+
+    const merged = JSON.parse(JSON.stringify(currentFilters));
+
+    // وراثة ذكية فقط إذا المستخدم ما ذكر الشي بالاستعلام الحالي
+    if(merged.areas.length === 0 && lastFilters.areas?.length) merged.areas = lastFilters.areas.slice();
+    if(merged.developers.length === 0 && lastFilters.developers?.length) merged.developers = lastFilters.developers.slice();
+    if(merged.beds == null && lastFilters.beds != null) merged.beds = lastFilters.beds;
+    if((merged.money?.min == null && merged.money?.max == null) && lastFilters.money){
+      merged.money = { ...lastFilters.money };
+    }
+    if(!merged.type && lastFilters.type) merged.type = lastFilters.type;
+
+    // tokens: ادمج (بدون تكرار)
+    const tset = new Set([...(lastFilters.tokens||[]), ...(merged.tokens||[])]);
+    merged.tokens = [...tset];
+
+    return merged;
+  }
+
+  // =========================
+  // ✅ Indexed Search (scoring)
+  // =========================
+  function searchWithFilters(nq, filters){
+    let followUp = null;
+    if(filters.areas.length > 1){
+      followUp = `لاحظت أكتر من منطقة: (${filters.areas.join("، ")}). تختار وحدة فيهم؟`;
+    }
+
+    const scored = INDEX.map(node=>{
+      let score = 0;
+      const reasons = [];
+
+      // areas
+      if(filters.areas.length){
+        let hit=false, hitName=null;
+        for(const a of filters.areas){
+          const tok = normalizeArabic(a);
+          if(node.text.includes(tok) || fuzzyTokenMatch(node.words, tok)){ hit=true; hitName=a; break; }
+        }
+        if(hit){ score += 12; reasons.push(`منطقة: ${hitName}`); }
+        else score -= 4;
+      }
+
+      // developers
+      if(filters.developers.length){
+        let hit=false, hitName=null;
+        for(const d of filters.developers){
+          const tok = normalizeArabic(d);
+          if(node.text.includes(tok) || fuzzyTokenMatch(node.words, tok)){ hit=true; hitName=d; break; }
+        }
+        if(hit){ score += 10; reasons.push(`مطور: ${hitName}`); }
+        else score -= 3;
+      }
+
+      // tokens
+      if(filters.tokens.length){
+        let hits = 0;
+        for(const t of filters.tokens){
+          if(fuzzyTokenMatch(node.words, t)){ score += 3; hits++; }
+        }
+        if(hits) reasons.push(`كلمات: ${hits}/${filters.tokens.length}`);
+        else score -= 1;
+      }
+
+      // beds
+      if(filters.beds != null){
+        if(node.beds != null && Number(node.beds) === filters.beds){
+          score += 8; reasons.push(`غرف: ${filters.beds===0?"ستوديو":filters.beds}`);
+        }else{
+          score -= 2;
+        }
+      }
+
+      // price
+      if(filters.money?.max != null){
+        if(node.price != null && node.price <= filters.money.max){ score += 7; reasons.push("ضمن سقف السعر"); }
+        else score -= 3;
+      }
+      if(filters.money?.min != null){
+        if(node.price != null && node.price >= filters.money.min){ score += 2; reasons.push("أعلى من الحد الأدنى"); }
+        else score -= 2;
+      }
+
+      // type
+      if(filters.type){
+        if(node.text.includes(filters.type)){ score += 2; reasons.push("نوع مناسب"); }
+      }
+
+      return { node, score, why: reasons.join("، ") || "أقرب نتيجة حسب التطابق العام" };
+    });
+
+    scored.sort((a,b)=>b.score-a.score);
+
+    let picked = scored.filter(x=>x.score > 0);
+    let note = null;
+
+    if(picked.length === 0){
+      const seed = hashString(nq);
+      picked = seededShuffle(scored, seed).slice(0, 20)
+        .map(x=>({ ...x, why:"مطابقة ضعيفة — عرضت خيارات عامة" }));
+      note = "لتكون النتائج أدق: حدّد المنطقة أو الميزانية أو عدد الغرف.";
+    }else{
+      const bestScore = picked[0].score;
+      if(bestScore >= 10) picked = picked.slice(0, 20);
+      else if(bestScore >= 4){ picked = picked.slice(0, 30); note = "هاي النتائج الأقرب لطلبك."; }
+      else { picked = seededShuffle(picked, hashString(nq)).slice(0, 40); note = "المطابقة ضعيفة نسبيًا، فوسّعت النطاق شوي."; }
+    }
+
+    const suggestions = [];
+    if(filters.areas.length === 0) suggestions.push("حدد المنطقة (مثال: دبي مارينا / الخليج التجاري)");
+    if(filters.beds == null) suggestions.push("حدد عدد الغرف (مثال: غرفتين / 2br)");
+    if(filters.money?.max == null && filters.money?.min == null) suggestions.push("حدد الميزانية (مثال: تحت 2 مليون / بين 1 و 2 مليون)");
+    if(filters.developers.length === 0) suggestions.push("إذا بدك مطور معيّن (مثال: اعمار / داماك)");
+
+    const metaById = new Map();
+    for(const x of picked){
+      const id = x.node.id != null ? String(x.node.id) : null;
+      if(id) metaById.set(id, x.why);
+    }
+
+    return {
+      results: picked.map(x=>x.node.item),
+      metaById,
+      filters,
+      note,
+      question: followUp,
+      suggestions
+    };
+  }
+
+  function searchIndexed(query){
+    const raw = String(query||"").trim();
+    const nq = normalizeArabic(raw);
+
+    // parse current filters
+    const current = {
+      beds: parseBedroomsSmart(nq),
+      money: parseMoneySmart(nq),
+      type: parseType(nq),
+      areas: extractAllAliases(nq, ALIASES.areas),
+      developers: extractAllAliases(nq, ALIASES.developers),
+      tokens: tokenizeQuery(nq)
+    };
+
+    // ✅ merge with last context (smart linking)
+    const merged = mergeWithContext(current, LAST_CONTEXT?.filters || null);
+
+    // search with merged filters
+    const out = searchWithFilters(nq, merged);
+
+    // update context
+    LAST_CONTEXT = { query: raw, filters: merged };
+
+    return out;
+  }
+
+  // =========================
+  // Always Learn
+  // =========================
+  function learnAlways(query, out){
+    query = String(query || "").trim();
+    if(!query) return;
+    bumpCount(MEMORY.queryCounts, query, 1);
+    pushLastQuery(query);
+    out?.filters?.areas?.forEach(a => bumpCount(MEMORY.areaCounts, a, 1));
+    out?.filters?.developers?.forEach(d => bumpCount(MEMORY.devCounts, d, 1));
+    saveMemory(MEMORY);
+  }
+
+  // =========================
+  // Chips + Suggestions
+  // =========================
+  function setChips(list){
+    chipsEl.innerHTML = "";
+    list.forEach(text=>{
+      const btn = document.createElement("div");
+      btn.className = "chip";
+      btn.textContent = text;
+      btn.addEventListener("click", ()=>{
+        if(qEl.disabled) return;
+        const current = qEl.value.trim();
+        qEl.value = current ? (current + " " + text) : text;
+        qEl.focus();
+      });
+      chipsEl.appendChild(btn);
+    });
+  }
+
+  function refreshChips(){
+    const learnedAreas = topKeysByCount(MEMORY.areaCounts, 3);
+    const learnedDevs  = topKeysByCount(MEMORY.devCounts, 3);
+    const learnedQs    = (MEMORY.lastQueries || []).slice(0, 2);
+    const base = ["غرفتين", "تحت 2 مليون", "الخليج التجاري", "دبي مارينا", "مطور اعمار"];
+
+    const dynamic = [];
+    learnedAreas.forEach(a => dynamic.push(a));
+    learnedDevs.forEach(d => dynamic.push("مطور " + d));
+    learnedQs.forEach(q => dynamic.push(q));
+
+    const uniq = [];
+    const seen = new Set();
+    for(const x of [...dynamic, ...base]){
+      const k = normalizeArabic(x);
+      if(seen.has(k)) continue;
+      seen.add(k);
+      uniq.push(x);
+    }
+    setChips(uniq.slice(0, 10));
+  }
+
+  function showSuggestions(out){
+    suggestionsEl.innerHTML = "";
+    const parts = [];
+    const hotAreas = topKeysByCount(MEMORY.areaCounts, 4);
+    const hotDevs  = topKeysByCount(MEMORY.devCounts, 4);
+
+    if(out?.filters){
+      const understood = humanizeFilters(out.filters);
+      if(understood.length) parts.push(`<b>فهمت طلبك:</b> ${escapeHtml(understood.join(" | "))}`);
+    }
+    if(out?.note) parts.push(`<b>ملاحظة:</b> ${escapeHtml(out.note)}`);
+    if(out?.question) parts.push(`<b>سؤال:</b> ${escapeHtml(out.question)}`);
+    if(out?.suggestions?.length) parts.push(`<b>لتدقيق أكثر:</b> ${escapeHtml(out.suggestions.slice(0,3).join(" — "))}`);
+    if(hotAreas.length) parts.push(`<b>مناطق مطلوبة كثيرًا:</b> ${escapeHtml(hotAreas.join("، "))}`);
+    if(hotDevs.length) parts.push(`<b>مطوّرين مطلوبين كثيرًا:</b> ${escapeHtml(hotDevs.join("، "))}`);
+
+    suggestionsEl.innerHTML = parts.map(p=>`<div style="margin-top:6px">${p}</div>`).join("");
+  }
+
+  // =========================
+  // ✅ Render results as history (append, not replace)
+  // =========================
+  function renderCardsHistory(queryText, items, metaById=null, out=null){
+    const section = document.createElement("div");
+    section.className = "section";
+
+    const head = document.createElement("div");
+    head.className = "sectionHead";
+
+    const left = document.createElement("div");
+    left.innerHTML = `<div class="q">🧾 ${escapeHtml(queryText)}</div>
+                      <div class="sub">${escapeHtml((out?.note || ""))}</div>`;
+
+    const right = document.createElement("div");
+    const understood = out?.filters ? humanizeFilters(out.filters).join(" | ") : "";
+    right.innerHTML = `<div class="sub">${escapeHtml(understood)}</div>`;
+
+    head.appendChild(left);
+    head.appendChild(right);
+
+    const grid = document.createElement("div");
+    grid.className = "grid";
+
+    if(!items.length){
+      grid.innerHTML = `<div class="empty">ما في نتائج مطابقة حالياً.</div>`;
+    }else{
+      const frag = document.createDocumentFragment();
+      items.forEach(item=>{
+        const card = document.createElement("div");
+        card.className="card";
+
+        const name = escapeHtml(item?.name || item?.title || "بدون اسم");
+        const developer = escapeHtml(item?.developer || item?.developer_name || "-");
+        const minPrice = escapeHtml(item?.min_price || item?.starting_price || item?.price_from || "-");
+        const region = escapeHtml(item?.region || item?.area || item?.location || "-");
+        const img = getImage(item);
+
+        const id = item?.id ?? item?._id ?? item?.uuid ?? null;
+        const why = metaById && id != null ? metaById.get(String(id)) : null;
+
+        card.innerHTML = `
+          <img src="${img}" alt="">
+          <div class="body">
+            <div class="title">${name}</div>
+            <div class="meta">المطور: ${developer}</div>
+            <div class="meta">السعر من: ${minPrice}</div>
+            <div class="meta">المنطقة: ${region}</div>
+            ${why ? `<div class="why">ليش انعرضت؟ ${escapeHtml(why)}</div>` : ``}
+          </div>
+        `;
+        frag.appendChild(card);
+      });
+      grid.appendChild(frag);
+    }
+
+    section.appendChild(head);
+    section.appendChild(grid);
+
+    // ✅ append new section (keep old results)
+    historyEl.prepend(section);
+  }
+
+  // =========================
+  // Auto load + build index
+  // =========================
+  async function autoPrepare(){
+    addMsg("bot",
+      "أهلًا فيك 👋\n" +
+      "اكتب طلبك مثل:\n" +
+      "• غرفتين دبي مارينا تحت 2 مليون\n" +
+      "• مطور اعمار الخليج التجاري\n\n" +
+      "رح تصير جاهز بعد لحظات."
+    );
+
+    try{
+      const url = `${API_BASE}?per_page=9999&page=1`;
+      const res = await fetch(url, { headers:{ "X-API-Key": API_KEY, "accept":"application/json" } });
+
+      const text = await res.text();
+      let data = {};
+      try{ data = JSON.parse(text); }catch{}
+
+      const items = normalizeItems(data);
+
+      if(!res.ok){
+        statusEl.textContent = `تعذر تجهيز البيانات (Status: ${res.status})`;
+        addMsg("bot", "صار في مشكلة بالاتصال. جرّب تحديث الصفحة.");
+        return;
+      }
+
+      ALL_PROJECTS = items;
+      buildIndex(ALL_PROJECTS);
+      READY = true;
+
+      qEl.disabled = false;
+      askBtn.disabled = false;
+      statusEl.textContent = "جاهز ✅ اكتب استعلامك.";
+
+      addMsg("bot", `تمام ✅ جاهز للبحث. (عدد المشاريع: ${ALL_PROJECTS.length})`);
+      refreshChips();
+      showSuggestions(null);
+
+    }catch(e){
+      statusEl.textContent = "تعذر تجهيز البيانات (خطأ بالشبكة)";
+      addMsg("bot", "صار خطأ بالشبكة. جرّب تحديث الصفحة.");
     }
   }
 
-  return {ok:false, fatal:false, reason:"NO_RESULTS"};
-}
-
-/* =========================
-   🤝 Clarifying Questions + Smart Suggestions
-========================= */
-function askClarifying(original){
-  warn("ما قدرت ألاقي نتائج مطابقة تمامًا. خلّينا نحدد شوي 👇");
-
-  const missing = [];
-  if(!original.region) missing.push("الإمارة");
-  if(!original.unit_bedrooms) missing.push("عدد الغرف");
-  if(!original.unit_price_from && !original.unit_price_to) missing.push("نطاق السعر");
-  if(!original.search_query) missing.push("المنطقة");
-
-  if(missing.length){
-    bot("ناقصني: " + missing.join(" + ") + " (اختياري، بس بيساعدني أعطيك نتائج أدق).");
-  }
-
-  addQuickReplies("اختار واحد بسرعة:", [
-    {label:"وسّع السعر (0.8–2.5M)", value:"دبي بين 0.8 و 2.5 مليون"},
-    {label:"شوف كل دبي (بدون منطقة)", value:"دبي"},
-    {label:"غرفة أو غرفتين", value:"دبي 1 أو 2 غرف"},
-    {label:"بدون بوست هاند أوفر", value:"دبي بدون بوست هاند أوفر"},
-  ]);
-
-  addQuickReplies("أو جاوبني بسؤال واحد:", [
-    {label:"بدك أي منطقة تحديدًا؟ (Marina / Downtown / JVC)", value:"بدّي Marina"},
-    {label:"قديش ميزانيتك بالضبط؟ (مثال 1-2M)", value:"ميزانيتي بين 1 و 2 مليون"},
-    {label:"كم غرفة بدك؟ (studio/1/2/3)", value:"بدّي 2 غرف"},
-  ]);
-}
-
-function smartSuggestions(original){
-  bot("اقتراحات سريعة لتزيد فرص النتائج:");
-  const opts = [];
-
-  if(original.search_query && original.search_query !== (original.region||"Dubai")){
-    opts.push({label:`بدون ${original.search_query}`, value:`${original.region||"دبي"} بدون تحديد منطقة`});
-  }
-  if(original.unit_bedrooms){
-    opts.push({label:"بدون فلتر الغرف", value:`${original.region||"دبي"} بدون تحديد عدد الغرف`});
-  }
-  if(original.unit_price_from || original.unit_price_to){
-    opts.push({label:"بدون فلتر السعر", value:`${original.region||"دبي"} بدون تحديد سعر`});
-    opts.push({label:"وسّع السعر 20%", value:`${original.region||"دبي"} بين 0.8 و 2.5 مليون`});
-  }
-  if(original.post_handover){
-    opts.push({label:"بدون Post Handover", value:`${original.region||"دبي"} بدون بوست هاند أوفر`});
-  }
-
-  if(!opts.length){
-    opts.push({label:"جرّب Dubai فقط", value:"Dubai"});
-  }
-
-  addQuickReplies("جرّب واحد منهم:", opts.slice(0,6));
-}
-
-/* =========================
-   Chat Flow
-========================= */
-function greet(){
-  bot("أهلًا 👋\nاكتب طلبك العقاري بحرية (منطقة + غرف + سعر)، وأنا أجيب أفضل 5 نتائج.");
-  warn("لو ما في نتائج مطابقة، رح أوسّع البحث تلقائيًا وأعطيك اقتراحات/سؤال توضيحي بدل الرفض.");
-}
-function reset(){
-  chat.innerHTML="";
-  greet();
-}
-reset();
-
-async function handleSend(){
-  const q = input.value.trim();
-  if(!q) return;
-  input.value="";
-  user(q);
-
-  if(q === "إعادة" || q.toLowerCase() === "reset"){
-    reset();
-    return;
-  }
-
-  const parsed = parsePrompt(q);
-
-  bot(
-`تمام ✅ فهمت طلبك:
-📍 المنطقة: ${parsed.search_query || "Any"} (${parsed.region || "Any"})
-🛏️ الغرف: ${parsed.unit_bedrooms || "Any"}
-💰 السعر: ${parsed.unit_price_from || "—"} → ${parsed.unit_price_to || "—"}
-🧾 Post Handover: ${parsed.post_handover || "Any"}
-
-عم أبحث الآن...`
-  );
-
-  const out = await searchWithFallback(parsed);
-
-  if(out.ok){
-    if(out.usedLabel !== "A0: Exact"){
-      warn(`ما لقيت نتائج مطابقة 100%، فوسّعت البحث تلقائيًا (${out.usedLabel}) وهاي أقرب نتائج 👇`);
+  // =========================
+  // Ask / Search
+  // =========================
+  function handleAsk(){
+    if(!READY){
+      addMsg("bot", "لسه لحظات…");
+      return;
     }
-    renderCardsInBot(out.items);
-    return;
+
+    const query = qEl.value.trim();
+    if(!query){
+      addMsg("bot", "اكتب طلبك مثل: غرفتين دبي مارينا تحت 2 مليون");
+      return;
+    }
+
+    addMsg("me", query);
+
+    const out = searchIndexed(query);
+
+    learnAlways(query, out);
+    refreshChips();
+
+    const understood = humanizeFilters(out.filters || {});
+    const msg =
+      `تمام ✅\n` +
+      `رح أعرض أفضل ${out.results.length} نتيجة.\n` +
+      (understood.length ? `فهمت: ${understood.join(" | ")}\n` : "") +
+      (out.note ? `ملاحظة: ${out.note}\n` : "") +
+      (out.question ? `سؤال سريع: ${out.question}\n` : "");
+
+    addMsg("bot", msg);
+    showSuggestions(out);
+
+    // ✅ add as history section (no wiping)
+    renderCardsHistory(query, out.results, out.metaById, out);
+
+    qEl.value = "";
+    qEl.focus();
   }
 
-  if(out.fatal && out.reason === "AUTH"){
-    bot(`❌ فشل المصادقة على الـ API\nStatus: ${out.last.status}\n\nغالبًا المفتاح غير صالح أو ممنوع من المتصفح.`);
-    return;
-  }
+  askBtn.addEventListener("click", handleAsk);
+  qEl.addEventListener("keydown", (e)=>{ if(e.key === "Enter") handleAsk(); });
 
-  // No results after all fallbacks:
-  askClarifying(parsed);
-  smartSuggestions(parsed);
-}
-
-document.getElementById("sendBtn").addEventListener("click", handleSend);
-input.addEventListener("keydown", (e)=>{ if(e.key==="Enter"){ e.preventDefault(); handleSend(); }});
-document.getElementById("resetBtn").addEventListener("click", reset);
-document.getElementById("exampleBtn").addEventListener("click", ()=>{
-  input.value = "شقة غرفتين وصالون بدبي مارينا بين 1 و 2 مليون بوست هاند أوفر";
-  input.focus();
-});
+  document.addEventListener("DOMContentLoaded", autoPrepare);
 </script>
+
 </body>
 </html>
