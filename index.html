@@ -1,839 +1,178 @@
-<!doctype html>
-<html lang="ar" dir="rtl">
+<!DOCTYPE html>
+<html lang="ar">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Reelly GPT-like Smart Chat (Auto Load + Index)</title>
+  <meta charset="UTF-8" />
+  <title>Reelly Bot – Test UI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Tahoma;background:#f5f5f7;padding:18px;color:#111827;}
-    .wrap{max-width:1100px;margin:0 auto;}
-    h1{margin:0 0 12px 0;font-size:20px}
-    .status{margin:8px 0 14px;font-weight:800;line-height:1.6;}
-    .muted{color:#6b7280;font-weight:700}
-    .chatBox{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:12px;box-shadow:0 10px 25px rgba(15,23,42,.06);}
-    .messages{display:flex;flex-direction:column;gap:10px;max-height:320px;overflow:auto;padding:8px;border-radius:14px;background:#f9fafb;border:1px solid #eef2f7;}
-    .msgRow{display:flex;gap:8px;align-items:flex-end;}
-    .bubble{max-width:85%;padding:10px 12px;border-radius:14px;border:1px solid #e5e7eb;background:#fff;line-height:1.7;font-size:14px;white-space:pre-wrap;word-break:break-word;}
-    .me{justify-content:flex-start}
-    .me .bubble{background:#2563eb;color:#fff;border-color:#2563eb;border-bottom-right-radius:4px;}
-    .bot{justify-content:flex-start}
-    .bot .bubble{background:#fff;border-bottom-left-radius:4px;}
-    .avatar{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;background:#111827;color:#fff;flex:0 0 auto;}
-    .avatar.meA{background:#2563eb}
-    .composer{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap;}
-    input{flex:1;min-width:260px;padding:12px 12px;border-radius:12px;border:1px solid #e5e7eb;font-size:15px;outline:none;background:#fff;}
-    button{padding:10px 14px;border-radius:12px;border:0;background:#2563eb;color:#fff;font-weight:800;cursor:pointer;}
-    button:disabled{opacity:.6;cursor:not-allowed}
-    .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
-    .chip{border:1px solid #e5e7eb;background:#fff;padding:8px 10px;border-radius:999px;cursor:pointer;font-weight:800;font-size:13px;color:#111827;}
-    .chip:hover{box-shadow:0 6px 14px rgba(15,23,42,.08)}
-    .suggestions{margin-top:10px;font-size:13px;color:#374151;line-height:1.7;}
-
-    /* Results History */
-    .history{margin-top:14px;display:flex;flex-direction:column;gap:14px;}
-    .section{
-      background:#fff;border:1px solid #e5e7eb;border-radius:16px;
-      box-shadow:0 10px 25px rgba(15,23,42,.06); overflow:hidden;
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Tahoma;
+      background: #f5f6fa;
+      margin: 0;
+      padding: 20px;
+      direction: rtl;
     }
-    .sectionHead{
-      padding:10px 12px;border-bottom:1px solid #eef2f7;
-      display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;
-      background:#fafafa;
+    .container {
+      max-width: 900px;
+      margin: auto;
     }
-    .sectionHead .q{font-weight:900}
-    .sectionHead .sub{color:#6b7280;font-weight:800;font-size:12px}
-    .grid{padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
-    .card{background:#fff;border-radius:14px;border:1px solid #e5e7eb;overflow:hidden;box-shadow:0 10px 25px rgba(15,23,42,.06);}
-    .card img{width:100%;aspect-ratio:16/10;object-fit:cover;background:#e5e7eb;}
-    .body{padding:12px}
-    .title{font-weight:900;margin-bottom:6px}
-    .meta{font-size:13px;color:#555;margin-bottom:6px}
-    .why{margin-top:10px;font-size:12px;color:#374151;background:#f3f4f6;padding:8px 10px;border-radius:10px;line-height:1.6;border:1px solid #e5e7eb;}
-    .empty{padding:20px;background:#fff;border:1px dashed #ccc;border-radius:14px;text-align:center;font-weight:900;}
+    h1 {
+      margin-bottom: 6px;
+    }
+    .sub {
+      color: #555;
+      margin-bottom: 16px;
+    }
+    .chat-box {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 12px;
+      min-height: 300px;
+      margin-bottom: 12px;
+      overflow-y: auto;
+    }
+    .msg {
+      margin-bottom: 12px;
+    }
+    .user {
+      font-weight: bold;
+      color: #0a58ca;
+    }
+    .bot {
+      font-weight: bold;
+      color: #198754;
+    }
+    textarea {
+      width: 100%;
+      min-height: 60px;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 18px;
+      font-size: 15px;
+      border-radius: 10px;
+      border: none;
+      background: #0d6efd;
+      color: #fff;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0b5ed7;
+    }
+    .cards {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 12px;
+    }
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 10px;
+      background: #fff;
+    }
+    .card h3 {
+      margin: 0 0 6px;
+      font-size: 16px;
+    }
+    .meta {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 6px;
+    }
+    .price {
+      font-weight: bold;
+      color: #198754;
+      margin-bottom: 6px;
+    }
+    .link a {
+      color: #0d6efd;
+      text-decoration: none;
+      font-size: 14px;
+    }
   </style>
 </head>
 
 <body>
-<div class="wrap">
-
-  <h1>شات بوت ذكي (GPT-like) لمشاريع Reelly</h1>
-
-  <div class="status" id="status">
-    <span class="muted">مرحباً 👋</span> اكتب طلبك بعد لحظات…
-  </div>
-
-  <div class="chatBox">
-    <div class="messages" id="messages"></div>
-
-    <div class="composer">
-      <input id="q" type="text" placeholder="مثال: غرفتين دبي مارينا تحت 2 مليون" disabled />
-      <button id="ask" disabled>ابحث</button>
+  <div class="container">
+    <h1>🧪 Reelly Chat Bot – Test UI</h1>
+    <div class="sub">
+      اختبر الشات بوت المدرب على مشاريع ريلي
     </div>
 
-    <div class="chips" id="chips"></div>
-    <div class="suggestions" id="suggestions"></div>
+    <div id="chat" class="chat-box"></div>
+
+    <textarea id="input" placeholder="مثال: شقق دبي غرفتين بميزانية 2 مليون"></textarea>
+    <button onclick="send()">إرسال</button>
+
+    <div id="cards" class="cards"></div>
   </div>
 
-  <div id="history" class="history"></div>
+  <script>
+    const API_URL = "http://localhost:8787/chat"; // عدلها إذا السيرفر بمكان تاني
 
-</div>
+    const chatBox = document.getElementById("chat");
+    const cardsBox = document.getElementById("cards");
+    const input = document.getElementById("input");
 
-<script>
-  // =========================
-  // 🔌 API
-  // =========================
-  const API_BASE = "https://search-listings-production.up.railway.app/v1/properties";
-  const API_KEY  = "reelly-80fd5f24-WLrF9bAxkGwYrUXFjrIyzNxRlzrB4kpH";
-
-  // =========================
-  // 🧠 Memory (Always Learn)
-  // =========================
-  const MEM_KEY = "reelly_gpt_memory_indexed_v3";
-  function loadMemory(){
-    try{
-      const raw = localStorage.getItem(MEM_KEY);
-      if(!raw) return {queryCounts:{}, areaCounts:{}, devCounts:{}, lastQueries:[]};
-      const m = JSON.parse(raw);
-      return {
-        queryCounts: m.queryCounts || {},
-        areaCounts: m.areaCounts || {},
-        devCounts: m.devCounts || {},
-        lastQueries: Array.isArray(m.lastQueries) ? m.lastQueries : []
-      };
-    }catch{
-      return {queryCounts:{}, areaCounts:{}, devCounts:{}, lastQueries:[]};
-    }
-  }
-  function saveMemory(mem){ localStorage.setItem(MEM_KEY, JSON.stringify(mem)); }
-  let MEMORY = loadMemory();
-
-  function bumpCount(map, key, inc=1){
-    if(!key) return;
-    map[key] = (map[key] || 0) + inc;
-  }
-  function pushLastQuery(q){
-    q = String(q || "").trim();
-    if(!q) return;
-    MEMORY.lastQueries = MEMORY.lastQueries.filter(x => x !== q);
-    MEMORY.lastQueries.unshift(q);
-    MEMORY.lastQueries = MEMORY.lastQueries.slice(0, 10);
-  }
-  function topKeysByCount(obj, limit=4){
-    const entries = Object.entries(obj || {});
-    entries.sort((a,b)=> (b[1]||0)-(a[1]||0));
-    return entries.slice(0, limit).map(([k])=>k);
-  }
-
-  // =========================
-  // 🧩 Aliases
-  // =========================
-  const ALIASES = {
-    areas: {
-      "الخليج التجاري": ["business bay","بزنس باي","الخليج التجاري","businessbay"],
-      "دبي مارينا": ["dubai marina","مارينا","دبي مارينا","marina"],
-      "داون تاون": ["downtown","داون تاون","وسط دبي","downtown dubai"],
-      "قرية جميرا الدائرية": ["jvc","jumeirah village circle","قرية جميرا","ج ف سي","جي في سي"],
-      "قرية جميرا المثلثة": ["jvt","jumeirah village triangle","جي في تي"],
-      "نخلة جميرا": ["palm jumeirah","نخلة جميرا","palm"],
-      "المدينة العالمية": ["international city","المدينة العالمية"],
-      "دبي هيلز": ["dubai hills","دبي هيلز","hills"],
-    },
-    developers: {
-      "اعمار": ["emaar","اعمار","إعمار"],
-      "داماك": ["damac","داماك"],
-      "نخيل": ["nakheel","نخيل"],
-      "مراس": ["meraas","مراس"],
-      "عزيزي": ["azizi","عزيزي"],
-      "دانوب": ["danube","دانوب"],
-      "شوبا": ["sobha","شوبا"],
-      "ماج": ["mag","ماج"],
-    }
-  };
-
-  // =========================
-  // 🧱 DOM
-  // =========================
-  const statusEl = document.getElementById("status");
-  const qEl = document.getElementById("q");
-  const askBtn = document.getElementById("ask");
-  const messagesEl = document.getElementById("messages");
-  const chipsEl = document.getElementById("chips");
-  const suggestionsEl = document.getElementById("suggestions");
-  const historyEl = document.getElementById("history");
-
-  // =========================
-  // 🗃️ Data cache + INDEX
-  // =========================
-  let ALL_PROJECTS = [];
-  let INDEX = [];
-  let READY = false;
-
-  // =========================
-  // 🧠 Conversation context (links queries)
-  // =========================
-  let LAST_CONTEXT = null; // { filters, query }
-
-  // =========================
-  // Helpers
-  // =========================
-  function escapeHtml(str){
-    return String(str ?? "")
-      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;").replaceAll("'","&#039;");
-  }
-
-  function normalizeArabic(s){
-    return String(s || "")
-      .toLowerCase()
-      .replaceAll("أ","ا").replaceAll("إ","ا").replaceAll("آ","ا")
-      .replaceAll("ى","ي").replaceAll("ة","ه")
-      .replaceAll("ؤ","و").replaceAll("ئ","ي")
-      .replaceAll(/[\u064B-\u065F]/g, "")
-      .replaceAll(/[^\p{L}\p{N}\s.]/gu, " ")
-      .replaceAll(/\s+/g, " ")
-      .trim();
-  }
-
-  function normalizeItems(data){
-    if(Array.isArray(data)) return data;
-    if(Array.isArray(data?.items)) return data.items;
-    if(Array.isArray(data?.data)) return data.data;
-    if(Array.isArray(data?.results)) return data.results;
-    if(Array.isArray(data?.properties)) return data.properties;
-    return [];
-  }
-
-  function getImage(item){
-    if(item?.cover_image_url){
-      try{
-        const parsed = JSON.parse(item.cover_image_url);
-        if(parsed?.url) return parsed.url;
-      }catch{}
-      if(String(item.cover_image_url).startsWith("http")) return item.cover_image_url;
-    }
-    return "https://dummyimage.com/800x500/e5e7eb/111827&text=No+Image";
-  }
-
-  function getPriceNumber(item){
-    const p = item?.min_price ?? item?.starting_price ?? item?.price_from ?? item?.price;
-    if(p == null) return null;
-    const pn = Number(String(p).replaceAll(",",""));
-    return Number.isFinite(pn) ? pn : null;
-  }
-
-  function getBedsNumber(item){
-    const b = item?.bedrooms ?? item?.min_bedrooms ?? item?.beds ?? item?.min_beds;
-    if(b == null) return null;
-    const bn = Number(String(b).replaceAll(",",""));
-    return Number.isFinite(bn) ? bn : null;
-  }
-
-  function itemTextForIndex(item){
-    return normalizeArabic([
-      item?.name, item?.title,
-      item?.developer, item?.developer_name,
-      item?.region, item?.area, item?.location,
-      item?.city, item?.community, item?.district,
-      item?.type
-    ].filter(Boolean).join(" "));
-  }
-
-  function tokenizeText(text){
-    const stop = new Set([
-      "في","بال","بالـ","من","الى","و","او","اقل","تحت","اكثر","فوق","سعر",
-      "غرف","غرفة","شقه","شقة","apartment","villa","تاونهاوس","تاون","المطور","developer"
-    ]);
-    return text.split(" ").filter(Boolean).filter(w => w.length >= 2 && !stop.has(w));
-  }
-
-  function buildIndex(items){
-    INDEX = items.map(it=>{
-      const text = itemTextForIndex(it);
-      const words = new Set(tokenizeText(text));
-      const id = it?.id ?? it?._id ?? it?.uuid ?? null;
-      return {
-        id: id != null ? String(id) : null,
-        item: it,
-        text,
-        words,
-        price: getPriceNumber(it),
-        beds: getBedsNumber(it)
-      };
-    });
-  }
-
-  // =========================
-  // Chat UI
-  // =========================
-  function addMsg(role, text){
-    const row = document.createElement("div");
-    row.className = "msgRow " + (role === "me" ? "me" : "bot");
-
-    const avatar = document.createElement("div");
-    avatar.className = "avatar " + (role === "me" ? "meA" : "");
-    avatar.textContent = role === "me" ? "أ" : "🤖";
-
-    const bubble = document.createElement("div");
-    bubble.className = "bubble";
-    bubble.textContent = text;
-
-    if(role === "me"){ row.appendChild(bubble); row.appendChild(avatar); }
-    else { row.appendChild(avatar); row.appendChild(bubble); }
-
-    messagesEl.appendChild(row);
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-  }
-
-  // =========================
-  // Seeded shuffle
-  // =========================
-  function hashString(str){
-    str = String(str || "");
-    let h = 2166136261;
-    for(let i=0;i<str.length;i++){
-      h ^= str.charCodeAt(i);
-      h = Math.imul(h, 16777619);
-    }
-    return h >>> 0;
-  }
-
-  function seededShuffle(arr, seed){
-    let a = arr.slice();
-    let s = seed >>> 0;
-    function rnd(){
-      s = (Math.imul(1664525, s) + 1013904223) >>> 0;
-      return s / 4294967296;
-    }
-    for(let i=a.length-1;i>0;i--){
-      const j = Math.floor(rnd() * (i+1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-  }
-
-  // =========================
-  // NLP
-  // =========================
-  function levenshtein(a,b){
-    a = a || ""; b = b || "";
-    const m=a.length,n=b.length;
-    const dp = Array.from({length:m+1},()=>Array(n+1).fill(0));
-    for(let i=0;i<=m;i++) dp[i][0]=i;
-    for(let j=0;j<=n;j++) dp[0][j]=j;
-    for(let i=1;i<=m;i++){
-      for(let j=1;j<=n;j++){
-        const c = a[i-1]===b[j-1]?0:1;
-        dp[i][j]=Math.min(dp[i-1][j]+1, dp[i][j-1]+1, dp[i-1][j-1]+c);
-      }
-    }
-    return dp[m][n];
-  }
-
-  function fuzzyTokenMatch(wordsSet, token){
-    if(wordsSet.has(token)) return true;
-    if(token.length < 4) return false;
-    for(const w of wordsSet){
-      if(Math.abs(w.length - token.length) > 3) continue;
-      if(levenshtein(w, token) <= 1) return true;
-    }
-    return false;
-  }
-
-  function moneyToNumber(numStr, unit){
-    const n = Number(String(numStr).replaceAll(",",""));
-    if(!Number.isFinite(n)) return null;
-    const u = (unit || "").toLowerCase();
-    if(u.includes("مليون") || u === "m") return Math.round(n * 1_000_000);
-    if(u.includes("الف") || u === "k") return Math.round(n * 1_000);
-    return Math.round(n);
-  }
-
-  function parseMoneySmart(q){
-    const t = normalizeArabic(q);
-
-    let between = t.match(/بين\s+([\d.]+)\s*(مليون|m|الف|k)?\s+و\s+([\d.]+)\s*(مليون|m|الف|k)?/);
-    if(between){
-      const a = moneyToNumber(between[1], between[2]);
-      const b = moneyToNumber(between[3], between[4]);
-      if(a && b) return {min: Math.min(a,b), max: Math.max(a,b)};
+    function addMsg(who, text) {
+      const div = document.createElement("div");
+      div.className = "msg";
+      div.innerHTML = `<span class="${who}">${who === "user" ? "أنت" : "البوت"}:</span> ${text.replace(/\n/g, "<br>")}`;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    let fromTo = t.match(/من\s+([\d.]+)\s*(مليون|m|الف|k)?\s+(الى|ل)\s+([\d.]+)\s*(مليون|m|الف|k)?/);
-    if(fromTo){
-      const a = moneyToNumber(fromTo[1], fromTo[2]);
-      const b = moneyToNumber(fromTo[4], fromTo[5]);
-      if(a && b) return {min: Math.min(a,b), max: Math.max(a,b)};
-    }
+    async function send() {
+      const text = input.value.trim();
+      if (!text) return;
 
-    if(t.includes("اقل") || t.includes("تحت") || t.includes("ماكس") || t.includes("حد")){
-      const m = t.match(/([\d.]+)\s*(مليون|m|الف|k)?/);
-      if(m){
-        const v = moneyToNumber(m[1], m[2]);
-        if(v) return {min:null, max:v};
-      }
-    }
+      addMsg("user", text);
+      input.value = "";
+      cardsBox.innerHTML = "";
 
-    if(t.includes("اكثر") || t.includes("فوق") || t.includes("ابتداء") || t.includes("مينيمم")){
-      const m = t.match(/([\d.]+)\s*(مليون|m|الف|k)?/);
-      if(m){
-        const v = moneyToNumber(m[1], m[2]);
-        if(v) return {min:v, max:null};
-      }
-    }
+      addMsg("bot", "⏳ عم أبحث عن أفضل النتائج...");
 
-    return {min:null, max:null};
-  }
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: text })
+        });
 
-  function parseBedroomsSmart(q){
-    const t = normalizeArabic(q);
-    if(t.includes("ستوديو") || t.includes("استوديو") || t.includes("studio")) return 0;
-    if(t.includes("غرفتين")) return 2;
-    if(t.includes("ثلاث")) return 3;
-    if(t.includes("اربع") || t.includes("اربعه")) return 4;
-    if(t.includes("خمس")) return 5;
+        const data = await res.json();
 
-    const m = t.match(/(\d+)\s*(غرف|غرفة|bed|br)/i);
-    if(m) return Number(m[1]);
+        // إزالة رسالة التحميل
+        chatBox.lastChild.remove();
 
-    const m2 = t.match(/(\d+)\s*bhk/i);
-    if(m2) return Number(m2[1]);
+        addMsg("bot", data.reply || "—");
 
-    return null;
-  }
-
-  function parseType(q){
-    const t = normalizeArabic(q);
-    const types = [
-      {key:"apartment", words:["شقه","شقة","apartment","apt"]},
-      {key:"villa", words:["فيلا","villa"]},
-      {key:"townhouse", words:["تاونهاوس","تاون","townhouse"]},
-      {key:"penthouse", words:["بنتهاوس","penthouse"]},
-      {key:"duplex", words:["دوبلكس","duplex"]},
-    ];
-    for(const tp of types){
-      if(tp.words.some(w => t.includes(normalizeArabic(w)))) return tp.key;
-    }
-    return null;
-  }
-
-  function extractAllAliases(q, dict){
-    const t = normalizeArabic(q);
-    const found = [];
-    for(const canonical in dict){
-      const arr = dict[canonical];
-      for(const w of arr){
-        if(t.includes(normalizeArabic(w))){
-          found.push(canonical);
-          break;
+        if (Array.isArray(data.cards)) {
+          data.cards.forEach(c => {
+            const card = document.createElement("div");
+            card.className = "card";
+            card.innerHTML = `
+              <h3>${c.title || "مشروع"}</h3>
+              <div class="meta">${[c.city, c.area].filter(Boolean).join(" / ")}</div>
+              <div class="meta">${c.type || ""} ${c.bedrooms ? "• " + c.bedrooms + " غرف" : ""}</div>
+              <div class="price">${c.price || ""}</div>
+              ${c.url ? `<div class="link"><a href="${c.url}" target="_blank">عرض التفاصيل</a></div>` : ""}
+            `;
+            cardsBox.appendChild(card);
+          });
         }
+
+      } catch (e) {
+        chatBox.lastChild.remove();
+        addMsg("bot", "❌ صار خطأ بالاتصال مع السيرفر");
       }
     }
-    return [...new Set(found)];
-  }
-
-  function tokenizeQuery(q){ return tokenizeText(normalizeArabic(q)); }
-
-  function humanizeFilters(f){
-    const parts = [];
-    if(f.areas?.length) parts.push(`المنطقة: ${f.areas.join(" أو ")}`);
-    if(f.developers?.length) parts.push(`المطور: ${f.developers.join(" أو ")}`);
-    if(f.beds != null) parts.push(`غرف: ${f.beds===0?"ستوديو":f.beds}`);
-    if(f.money?.min != null) parts.push(`سعر من: ${f.money.min.toLocaleString()}`);
-    if(f.money?.max != null) parts.push(`سعر إلى: ${f.money.max.toLocaleString()}`);
-    if(f.type) parts.push(`نوع: ${f.type}`);
-    if(f.tokens?.length) parts.push(`كلمات: ${f.tokens.join("، ")}`);
-    return parts;
-  }
-
-  // =========================
-  // ✅ Merge context (smart linking)
-  // =========================
-  function mergeWithContext(currentFilters, lastFilters){
-    if(!lastFilters) return currentFilters;
-
-    const merged = JSON.parse(JSON.stringify(currentFilters));
-
-    // وراثة ذكية فقط إذا المستخدم ما ذكر الشي بالاستعلام الحالي
-    if(merged.areas.length === 0 && lastFilters.areas?.length) merged.areas = lastFilters.areas.slice();
-    if(merged.developers.length === 0 && lastFilters.developers?.length) merged.developers = lastFilters.developers.slice();
-    if(merged.beds == null && lastFilters.beds != null) merged.beds = lastFilters.beds;
-    if((merged.money?.min == null && merged.money?.max == null) && lastFilters.money){
-      merged.money = { ...lastFilters.money };
-    }
-    if(!merged.type && lastFilters.type) merged.type = lastFilters.type;
-
-    // tokens: ادمج (بدون تكرار)
-    const tset = new Set([...(lastFilters.tokens||[]), ...(merged.tokens||[])]);
-    merged.tokens = [...tset];
-
-    return merged;
-  }
-
-  // =========================
-  // ✅ Indexed Search (scoring)
-  // =========================
-  function searchWithFilters(nq, filters){
-    let followUp = null;
-    if(filters.areas.length > 1){
-      followUp = `لاحظت أكتر من منطقة: (${filters.areas.join("، ")}). تختار وحدة فيهم؟`;
-    }
-
-    const scored = INDEX.map(node=>{
-      let score = 0;
-      const reasons = [];
-
-      // areas
-      if(filters.areas.length){
-        let hit=false, hitName=null;
-        for(const a of filters.areas){
-          const tok = normalizeArabic(a);
-          if(node.text.includes(tok) || fuzzyTokenMatch(node.words, tok)){ hit=true; hitName=a; break; }
-        }
-        if(hit){ score += 12; reasons.push(`منطقة: ${hitName}`); }
-        else score -= 4;
-      }
-
-      // developers
-      if(filters.developers.length){
-        let hit=false, hitName=null;
-        for(const d of filters.developers){
-          const tok = normalizeArabic(d);
-          if(node.text.includes(tok) || fuzzyTokenMatch(node.words, tok)){ hit=true; hitName=d; break; }
-        }
-        if(hit){ score += 10; reasons.push(`مطور: ${hitName}`); }
-        else score -= 3;
-      }
-
-      // tokens
-      if(filters.tokens.length){
-        let hits = 0;
-        for(const t of filters.tokens){
-          if(fuzzyTokenMatch(node.words, t)){ score += 3; hits++; }
-        }
-        if(hits) reasons.push(`كلمات: ${hits}/${filters.tokens.length}`);
-        else score -= 1;
-      }
-
-      // beds
-      if(filters.beds != null){
-        if(node.beds != null && Number(node.beds) === filters.beds){
-          score += 8; reasons.push(`غرف: ${filters.beds===0?"ستوديو":filters.beds}`);
-        }else{
-          score -= 2;
-        }
-      }
-
-      // price
-      if(filters.money?.max != null){
-        if(node.price != null && node.price <= filters.money.max){ score += 7; reasons.push("ضمن سقف السعر"); }
-        else score -= 3;
-      }
-      if(filters.money?.min != null){
-        if(node.price != null && node.price >= filters.money.min){ score += 2; reasons.push("أعلى من الحد الأدنى"); }
-        else score -= 2;
-      }
-
-      // type
-      if(filters.type){
-        if(node.text.includes(filters.type)){ score += 2; reasons.push("نوع مناسب"); }
-      }
-
-      return { node, score, why: reasons.join("، ") || "أقرب نتيجة حسب التطابق العام" };
-    });
-
-    scored.sort((a,b)=>b.score-a.score);
-
-    let picked = scored.filter(x=>x.score > 0);
-    let note = null;
-
-    if(picked.length === 0){
-      const seed = hashString(nq);
-      picked = seededShuffle(scored, seed).slice(0, 20)
-        .map(x=>({ ...x, why:"مطابقة ضعيفة — عرضت خيارات عامة" }));
-      note = "لتكون النتائج أدق: حدّد المنطقة أو الميزانية أو عدد الغرف.";
-    }else{
-      const bestScore = picked[0].score;
-      if(bestScore >= 10) picked = picked.slice(0, 20);
-      else if(bestScore >= 4){ picked = picked.slice(0, 30); note = "هاي النتائج الأقرب لطلبك."; }
-      else { picked = seededShuffle(picked, hashString(nq)).slice(0, 40); note = "المطابقة ضعيفة نسبيًا، فوسّعت النطاق شوي."; }
-    }
-
-    const suggestions = [];
-    if(filters.areas.length === 0) suggestions.push("حدد المنطقة (مثال: دبي مارينا / الخليج التجاري)");
-    if(filters.beds == null) suggestions.push("حدد عدد الغرف (مثال: غرفتين / 2br)");
-    if(filters.money?.max == null && filters.money?.min == null) suggestions.push("حدد الميزانية (مثال: تحت 2 مليون / بين 1 و 2 مليون)");
-    if(filters.developers.length === 0) suggestions.push("إذا بدك مطور معيّن (مثال: اعمار / داماك)");
-
-    const metaById = new Map();
-    for(const x of picked){
-      const id = x.node.id != null ? String(x.node.id) : null;
-      if(id) metaById.set(id, x.why);
-    }
-
-    return {
-      results: picked.map(x=>x.node.item),
-      metaById,
-      filters,
-      note,
-      question: followUp,
-      suggestions
-    };
-  }
-
-  function searchIndexed(query){
-    const raw = String(query||"").trim();
-    const nq = normalizeArabic(raw);
-
-    // parse current filters
-    const current = {
-      beds: parseBedroomsSmart(nq),
-      money: parseMoneySmart(nq),
-      type: parseType(nq),
-      areas: extractAllAliases(nq, ALIASES.areas),
-      developers: extractAllAliases(nq, ALIASES.developers),
-      tokens: tokenizeQuery(nq)
-    };
-
-    // ✅ merge with last context (smart linking)
-    const merged = mergeWithContext(current, LAST_CONTEXT?.filters || null);
-
-    // search with merged filters
-    const out = searchWithFilters(nq, merged);
-
-    // update context
-    LAST_CONTEXT = { query: raw, filters: merged };
-
-    return out;
-  }
-
-  // =========================
-  // Always Learn
-  // =========================
-  function learnAlways(query, out){
-    query = String(query || "").trim();
-    if(!query) return;
-    bumpCount(MEMORY.queryCounts, query, 1);
-    pushLastQuery(query);
-    out?.filters?.areas?.forEach(a => bumpCount(MEMORY.areaCounts, a, 1));
-    out?.filters?.developers?.forEach(d => bumpCount(MEMORY.devCounts, d, 1));
-    saveMemory(MEMORY);
-  }
-
-  // =========================
-  // Chips + Suggestions
-  // =========================
-  function setChips(list){
-    chipsEl.innerHTML = "";
-    list.forEach(text=>{
-      const btn = document.createElement("div");
-      btn.className = "chip";
-      btn.textContent = text;
-      btn.addEventListener("click", ()=>{
-        if(qEl.disabled) return;
-        const current = qEl.value.trim();
-        qEl.value = current ? (current + " " + text) : text;
-        qEl.focus();
-      });
-      chipsEl.appendChild(btn);
-    });
-  }
-
-  function refreshChips(){
-    const learnedAreas = topKeysByCount(MEMORY.areaCounts, 3);
-    const learnedDevs  = topKeysByCount(MEMORY.devCounts, 3);
-    const learnedQs    = (MEMORY.lastQueries || []).slice(0, 2);
-    const base = ["غرفتين", "تحت 2 مليون", "الخليج التجاري", "دبي مارينا", "مطور اعمار"];
-
-    const dynamic = [];
-    learnedAreas.forEach(a => dynamic.push(a));
-    learnedDevs.forEach(d => dynamic.push("مطور " + d));
-    learnedQs.forEach(q => dynamic.push(q));
-
-    const uniq = [];
-    const seen = new Set();
-    for(const x of [...dynamic, ...base]){
-      const k = normalizeArabic(x);
-      if(seen.has(k)) continue;
-      seen.add(k);
-      uniq.push(x);
-    }
-    setChips(uniq.slice(0, 10));
-  }
-
-  function showSuggestions(out){
-    suggestionsEl.innerHTML = "";
-    const parts = [];
-    const hotAreas = topKeysByCount(MEMORY.areaCounts, 4);
-    const hotDevs  = topKeysByCount(MEMORY.devCounts, 4);
-
-    if(out?.filters){
-      const understood = humanizeFilters(out.filters);
-      if(understood.length) parts.push(`<b>فهمت طلبك:</b> ${escapeHtml(understood.join(" | "))}`);
-    }
-    if(out?.note) parts.push(`<b>ملاحظة:</b> ${escapeHtml(out.note)}`);
-    if(out?.question) parts.push(`<b>سؤال:</b> ${escapeHtml(out.question)}`);
-    if(out?.suggestions?.length) parts.push(`<b>لتدقيق أكثر:</b> ${escapeHtml(out.suggestions.slice(0,3).join(" — "))}`);
-    if(hotAreas.length) parts.push(`<b>مناطق مطلوبة كثيرًا:</b> ${escapeHtml(hotAreas.join("، "))}`);
-    if(hotDevs.length) parts.push(`<b>مطوّرين مطلوبين كثيرًا:</b> ${escapeHtml(hotDevs.join("، "))}`);
-
-    suggestionsEl.innerHTML = parts.map(p=>`<div style="margin-top:6px">${p}</div>`).join("");
-  }
-
-  // =========================
-  // ✅ Render results as history (append, not replace)
-  // =========================
-  function renderCardsHistory(queryText, items, metaById=null, out=null){
-    const section = document.createElement("div");
-    section.className = "section";
-
-    const head = document.createElement("div");
-    head.className = "sectionHead";
-
-    const left = document.createElement("div");
-    left.innerHTML = `<div class="q">🧾 ${escapeHtml(queryText)}</div>
-                      <div class="sub">${escapeHtml((out?.note || ""))}</div>`;
-
-    const right = document.createElement("div");
-    const understood = out?.filters ? humanizeFilters(out.filters).join(" | ") : "";
-    right.innerHTML = `<div class="sub">${escapeHtml(understood)}</div>`;
-
-    head.appendChild(left);
-    head.appendChild(right);
-
-    const grid = document.createElement("div");
-    grid.className = "grid";
-
-    if(!items.length){
-      grid.innerHTML = `<div class="empty">ما في نتائج مطابقة حالياً.</div>`;
-    }else{
-      const frag = document.createDocumentFragment();
-      items.forEach(item=>{
-        const card = document.createElement("div");
-        card.className="card";
-
-        const name = escapeHtml(item?.name || item?.title || "بدون اسم");
-        const developer = escapeHtml(item?.developer || item?.developer_name || "-");
-        const minPrice = escapeHtml(item?.min_price || item?.starting_price || item?.price_from || "-");
-        const region = escapeHtml(item?.region || item?.area || item?.location || "-");
-        const img = getImage(item);
-
-        const id = item?.id ?? item?._id ?? item?.uuid ?? null;
-        const why = metaById && id != null ? metaById.get(String(id)) : null;
-
-        card.innerHTML = `
-          <img src="${img}" alt="">
-          <div class="body">
-            <div class="title">${name}</div>
-            <div class="meta">المطور: ${developer}</div>
-            <div class="meta">السعر من: ${minPrice}</div>
-            <div class="meta">المنطقة: ${region}</div>
-            ${why ? `<div class="why">ليش انعرضت؟ ${escapeHtml(why)}</div>` : ``}
-          </div>
-        `;
-        frag.appendChild(card);
-      });
-      grid.appendChild(frag);
-    }
-
-    section.appendChild(head);
-    section.appendChild(grid);
-
-    // ✅ append new section (keep old results)
-    historyEl.prepend(section);
-  }
-
-  // =========================
-  // Auto load + build index
-  // =========================
-  async function autoPrepare(){
-    addMsg("bot",
-      "أهلًا فيك 👋\n" +
-      "اكتب طلبك مثل:\n" +
-      "• غرفتين دبي مارينا تحت 2 مليون\n" +
-      "• مطور اعمار الخليج التجاري\n\n" +
-      "رح تصير جاهز بعد لحظات."
-    );
-
-    try{
-      const url = `${API_BASE}?per_page=9999&page=1`;
-      const res = await fetch(url, { headers:{ "X-API-Key": API_KEY, "accept":"application/json" } });
-
-      const text = await res.text();
-      let data = {};
-      try{ data = JSON.parse(text); }catch{}
-
-      const items = normalizeItems(data);
-
-      if(!res.ok){
-        statusEl.textContent = `تعذر تجهيز البيانات (Status: ${res.status})`;
-        addMsg("bot", "صار في مشكلة بالاتصال. جرّب تحديث الصفحة.");
-        return;
-      }
-
-      ALL_PROJECTS = items;
-      buildIndex(ALL_PROJECTS);
-      READY = true;
-
-      qEl.disabled = false;
-      askBtn.disabled = false;
-      statusEl.textContent = "جاهز ✅ اكتب استعلامك.";
-
-      addMsg("bot", `تمام ✅ جاهز للبحث. (عدد المشاريع: ${ALL_PROJECTS.length})`);
-      refreshChips();
-      showSuggestions(null);
-
-    }catch(e){
-      statusEl.textContent = "تعذر تجهيز البيانات (خطأ بالشبكة)";
-      addMsg("bot", "صار خطأ بالشبكة. جرّب تحديث الصفحة.");
-    }
-  }
-
-  // =========================
-  // Ask / Search
-  // =========================
-  function handleAsk(){
-    if(!READY){
-      addMsg("bot", "لسه لحظات…");
-      return;
-    }
-
-    const query = qEl.value.trim();
-    if(!query){
-      addMsg("bot", "اكتب طلبك مثل: غرفتين دبي مارينا تحت 2 مليون");
-      return;
-    }
-
-    addMsg("me", query);
-
-    const out = searchIndexed(query);
-
-    learnAlways(query, out);
-    refreshChips();
-
-    const understood = humanizeFilters(out.filters || {});
-    const msg =
-      `تمام ✅\n` +
-      `رح أعرض أفضل ${out.results.length} نتيجة.\n` +
-      (understood.length ? `فهمت: ${understood.join(" | ")}\n` : "") +
-      (out.note ? `ملاحظة: ${out.note}\n` : "") +
-      (out.question ? `سؤال سريع: ${out.question}\n` : "");
-
-    addMsg("bot", msg);
-    showSuggestions(out);
-
-    // ✅ add as history section (no wiping)
-    renderCardsHistory(query, out.results, out.metaById, out);
-
-    qEl.value = "";
-    qEl.focus();
-  }
-
-  askBtn.addEventListener("click", handleAsk);
-  qEl.addEventListener("keydown", (e)=>{ if(e.key === "Enter") handleAsk(); });
-
-  document.addEventListener("DOMContentLoaded", autoPrepare);
-</script>
-
+  </script>
 </body>
 </html>
