@@ -1,0 +1,74 @@
+
+---
+
+## 4️⃣ frontend/index.html
+```html
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>Reelly AI Chat</title>
+<style>
+body{font-family:Arial;background:#f5f6fa}
+.chat{max-width:420px;margin:40px auto;background:#fff;border-radius:14px;padding:12px}
+.messages{height:380px;overflow:auto}
+.msg{margin:8px 0;padding:8px 12px;border-radius:10px;max-width:80%}
+.user{background:#007bff;color:#fff;margin-left:auto}
+.bot{background:#eee}
+.card{border:1px solid #ddd;border-radius:10px;padding:10px;margin:8px 0}
+input{width:100%;padding:10px;border-radius:8px;border:1px solid #ccc}
+</style>
+</head>
+<body>
+
+<div class="chat">
+  <div class="messages" id="chat"></div>
+  <input id="input" placeholder="اكتب طلبك العقاري..." />
+</div>
+
+<script>
+const chat = document.getElementById("chat");
+const input = document.getElementById("input");
+
+function add(html, cls){
+  const d = document.createElement("div");
+  d.className = "msg " + cls;
+  d.innerHTML = html;
+  chat.appendChild(d);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+input.addEventListener("keypress", async e => {
+  if(e.key !== "Enter") return;
+  const text = input.value;
+  input.value = "";
+  add(text, "user");
+
+  const res = await fetch("http://localhost:3000/search", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({ message:text })
+  });
+
+  const data = await res.json();
+
+  if(!data.results || data.results.length === 0){
+    add("❌ لا توجد نتائج مناسبة", "bot");
+    return;
+  }
+
+  data.results.slice(0,5).forEach(p => {
+    add(`
+      <div class="card">
+        <b>${p.title || "مشروع عقاري"}</b><br>
+        💰 ${p.price || "-"}<br>
+        🛏 ${p.beds || "-"} غرف<br>
+        📍 ${p.area || ""}
+      </div>
+    `,"bot");
+  });
+});
+</script>
+
+</body>
+</html>
