@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Real Estate Mini Bot (HTML only)</title>
+  <title>Real Estate Chat Bot</title>
   <style>
     body{font-family:system-ui;background:#f6f7fb;margin:0;padding:18px}
     .wrap{max-width:900px;margin:auto;display:grid;grid-template-columns:1.2fr 1fr;gap:14px}
@@ -20,16 +20,10 @@
     input{flex:1;padding:10px 12px;border-radius:12px;border:1px solid #e5e7eb;font-size:15px}
     button{padding:10px 14px;border:0;border-radius:12px;background:#111827;color:#fff;font-weight:800;cursor:pointer}
     textarea{width:100%;height:520px;border:0;outline:0;padding:12px 14px;border-radius:16px;resize:none;white-space:pre-wrap}
-    .small{color:#64748b;font-size:13px;padding:0 14px 12px}
-    .warn{background:#fff7ed;border:1px solid #fed7aa;color:#7c2d12;border-radius:14px;padding:10px 12px;margin-bottom:14px}
     @media (max-width: 900px){.wrap{grid-template-columns:1fr}.chat,textarea{height:420px}}
   </style>
 </head>
 <body>
-
-<div class="warn">
-  ⚠️ ملاحظة: هذا ديمو HTML فقط ويحتاج وضع OpenAI API Key داخل الصفحة (غير آمن للنشر العام).
-</div>
 
 <div class="wrap">
   <div class="card">
@@ -39,7 +33,6 @@
       <input id="inp" placeholder="مثال: بدي شقة غرفتين بدبي مارينا ميزانيتي 1.6 مليون" />
       <button id="send">إرسال</button>
     </div>
-    <div class="small">سيتم استخراج المتطلبات وتحديث الملخص على اليمين.</div>
   </div>
 
   <div class="card">
@@ -49,158 +42,100 @@
 </div>
 
 <script>
-  /**************************************************************
-   * 1) ضع مفتاحك هنا (Demo فقط)
-   **************************************************************/
-  const OPENAI_API_KEY = "PUT_YOUR_KEY_HERE"; // مثال: sk-...
+/* =========================
+   1) ضع المفتاح هنا
+   ========================= */
+const OPENAI_API_KEY = "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"; // ← المفتاح الجديد فقط
 
-  /**************************************************************
-   * 2) إعدادات عامة
-   **************************************************************/
-  const chatEl = document.getElementById("chat");
-  const inp = document.getElementById("inp");
-  const sendBtn = document.getElementById("send");
-  const summaryEl = document.getElementById("summary");
-  const history = [];
+/* ========================= */
+const chatEl = document.getElementById("chat");
+const inp = document.getElementById("inp");
+const sendBtn = document.getElementById("send");
+const summaryEl = document.getElementById("summary");
+const history = [];
 
-  function addMsg(text, who="me"){
-    const row = document.createElement("div");
-    row.className = "msg " + (who==="me" ? "me":"bot");
-    const b = document.createElement("div");
-    b.className = "b";
-    b.textContent = text;
-    row.appendChild(b);
-    chatEl.appendChild(row);
-    chatEl.scrollTop = chatEl.scrollHeight;
-  }
+function addMsg(text, who){
+  const row = document.createElement("div");
+  row.className = "msg " + who;
+  const b = document.createElement("div");
+  b.className = "b";
+  b.textContent = text;
+  row.appendChild(b);
+  chatEl.appendChild(row);
+  chatEl.scrollTop = chatEl.scrollHeight;
+}
 
-  function buildLeadSummary(extracted){
-    const safe = (v) => (v && String(v).trim()) ? v : "unknown";
-    return [
-      `Intent: ${safe(extracted.intent)}`,
-      `City: ${safe(extracted.city)} | Area: ${safe(extracted.area)}`,
-      `Type: ${safe(extracted.property_type)} | Bedrooms: ${safe(extracted.bedrooms)} | Bathrooms: ${safe(extracted.bathrooms)}`,
-      `Budget: ${safe(extracted.budget)} | Payment: ${safe(extracted.payment)}`,
-      `Ready/Offplan: ${safe(extracted.ready_or_offplan)} | Handover: ${safe(extracted.handover_date)}`,
-      `View: ${safe(extracted.view)}`,
-      `Amenities: ${safe(extracted.amenities)}`,
-      `Timeline: ${safe(extracted.timeline)}`,
-      `Name: ${safe(extracted.name)} | WhatsApp: ${safe(extracted.phone_or_whatsapp)}`,
-      `Notes: ${safe(extracted.notes)}`
-    ].join("\n");
-  }
+function buildSummary(e){
+  const s=v=>v&&v!=="unknown"?v:"unknown";
+  return `
+Intent: ${s(e.intent)}
+City: ${s(e.city)} | Area: ${s(e.area)}
+Type: ${s(e.property_type)} | Bedrooms: ${s(e.bedrooms)}
+Budget: ${s(e.budget)}
+Ready/Offplan: ${s(e.ready_or_offplan)}
+Notes: ${s(e.notes)}
+`.trim();
+}
 
-  async function callOpenAI(userMessage){
-    const system = `
-أنت شات بوت عقاري ذكي. هدفك:
-1) ترد على المستخدم بشكل طبيعي وبسيط (عربي غالباً).
-2) تستخرج متطلبات العقار من كلامه بدقة.
-3) إذا في معلومات ناقصة اسأل سؤال/سؤالين فقط.
-4) رجّع JSON فيه: assistant_message + extracted (لا تخترع معلومات، وإذا مش مذكور خلّيه 'unknown').
+async function send(){
+  const msg = inp.value.trim();
+  if(!msg) return;
 
-المفاتيح المطلوبة داخل extracted:
-intent, city, area, property_type, bedrooms, bathrooms, budget, payment, ready_or_offplan, handover_date, view, amenities, timeline, nationality, name, phone_or_whatsapp, notes
-`;
+  addMsg(msg,"me");
+  inp.value="";
 
-    const extractionSchema = {
-      type: "object",
-      additionalProperties: false,
-      properties: {
-        intent: { type: "string" },
-        city: { type: "string" },
-        area: { type: "string" },
-        property_type: { type: "string" },
-        bedrooms: { type: "string" },
-        bathrooms: { type: "string" },
-        budget: { type: "string" },
-        payment: { type: "string" },
-        ready_or_offplan: { type: "string" },
-        handover_date: { type: "string" },
-        view: { type: "string" },
-        amenities: { type: "string" },
-        timeline: { type: "string" },
-        nationality: { type: "string" },
-        name: { type: "string" },
-        phone_or_whatsapp: { type: "string" },
-        notes: { type: "string" }
-      },
-      required: ["intent","city","area","property_type","bedrooms","budget","ready_or_offplan","notes"]
-    };
-
-    const payload = {
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: system },
-        ...history.slice(-10),
-        { role: "user", content: userMessage }
-      ],
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: "real_estate_html_bot",
-          schema: {
-            type: "object",
-            additionalProperties: false,
-            properties: {
-              assistant_message: { type: "string" },
-              extracted: extractionSchema
-            },
-            required: ["assistant_message","extracted"]
-          }
+  const payload = {
+    model: "gpt-4o-mini",
+    messages: [
+      {role:"system",content:"أنت شات بوت عقاري ذكي. استخرج طلب المستخدم العقاري ورد عليه بشكل بسيط، وأرجع JSON فيه assistant_message و extracted."},
+      {role:"user",content:msg}
+    ],
+    response_format:{
+      type:"json_schema",
+      json_schema:{
+        name:"real_estate_bot",
+        schema:{
+          type:"object",
+          properties:{
+            assistant_message:{type:"string"},
+            extracted:{
+              type:"object",
+              properties:{
+                intent:{type:"string"},
+                city:{type:"string"},
+                area:{type:"string"},
+                property_type:{type:"string"},
+                bedrooms:{type:"string"},
+                budget:{type:"string"},
+                ready_or_offplan:{type:"string"},
+                notes:{type:"string"}
+              }
+            }
+          },
+          required:["assistant_message","extracted"]
         }
-      },
-      temperature: 0.3
-    };
-
-    const r = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const data = await r.json();
-    if (!r.ok) throw new Error(data?.error?.message || "OpenAI API error");
-
-    const content = data.choices?.[0]?.message?.content || "{}";
-    return JSON.parse(content);
-  }
-
-  async function send(){
-    const msg = inp.value.trim();
-    if(!msg) return;
-
-    if (!OPENAI_API_KEY || OPENAI_API_KEY.includes("PUT_YOUR_KEY_HERE")) {
-      addMsg("حط مفتاح OpenAI داخل OPENAI_API_KEY بالأول (داخل الكود).", "bot");
-      return;
+      }
     }
+  };
 
-    inp.value = "";
-    addMsg(msg, "me");
-    history.push({ role: "user", content: msg });
+  const r = await fetch("https://api.openai.com/v1/chat/completions",{
+    method:"POST",
+    headers:{
+      "Authorization":"Bearer "+OPENAI_API_KEY,
+      "Content-Type":"application/json"
+    },
+    body:JSON.stringify(payload)
+  });
 
-    sendBtn.disabled = true;
-    try{
-      const out = await callOpenAI(msg);
+  const d = await r.json();
+  const out = JSON.parse(d.choices[0].message.content);
 
-      addMsg(out.assistant_message, "bot");
-      history.push({ role: "assistant", content: out.assistant_message });
+  addMsg(out.assistant_message,"bot");
+  summaryEl.value = buildSummary(out.extracted);
+}
 
-      summaryEl.value = buildLeadSummary(out.extracted);
-    }catch(e){
-      addMsg("صار خطأ تقني. تأكد من API Key أو جرّب مرة ثانية.", "bot");
-      console.error(e);
-    }finally{
-      sendBtn.disabled = false;
-    }
-  }
-
-  sendBtn.addEventListener("click", send);
-  inp.addEventListener("keydown", (e)=>{ if(e.key==="Enter") send(); });
-
-  addMsg("أهلاً! احكيلي شو العقار اللي بدك ياه (مدينة/منطقة/ميزانية/عدد غرف)، وبسألك إذا نقص شي.", "bot");
+sendBtn.onclick=send;
+addMsg("أهلاً! احكيلي شو العقار اللي بدك ياه.","bot");
 </script>
 </body>
 </html>
